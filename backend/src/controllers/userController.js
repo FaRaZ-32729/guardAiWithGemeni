@@ -2,12 +2,14 @@ const userModel = require("../models/userModel");
 const fs = require("fs");
 const path = require("path");
 
+
+
 // Register Student
 const registerStudent = async (req, res) => {
     try {
-        const { name, email, studentRollNumber, parentsEmail, department } = req.body;
+        const { name, email, studentRollNumber, parentsEmail, parentsPhone, fatherName, department } = req.body;
 
-        if (!name || !email || !studentRollNumber || !parentsEmail || !department) {
+        if (!name || !email || !studentRollNumber || !parentsEmail || !parentsPhone || !fatherName || !department) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
@@ -30,6 +32,8 @@ const registerStudent = async (req, res) => {
             email,
             studentRollNumber,
             parentsEmail,
+            parentsPhone,
+            fatherName,
             face: faceUrl,
             department,
             role: "student"
@@ -44,6 +48,7 @@ const registerStudent = async (req, res) => {
     }
 };
 
+//get all students
 const getAllStudents = async (req, res) => {
     try {
         const students = await userModel.find({ role: "student" });

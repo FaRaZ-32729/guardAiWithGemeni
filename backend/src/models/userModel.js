@@ -23,6 +23,14 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         trim: true
     },
+    parentsPhone: {
+        type: String,
+        trim: true
+    },
+    fatherName: {
+        type: String,
+        trim: true
+    },
     face: {
         type: String
     },
@@ -48,6 +56,8 @@ userSchema.pre('save', async function () {
 
         this.studentRollNumber = undefined;
         this.parentsEmail = undefined;
+        this.parentsPhone = undefined;
+        this.fatherName = undefined;
         this.face = undefined;
         this.department = undefined;
     }
@@ -58,10 +68,12 @@ userSchema.pre('save', async function () {
             !this.email ||
             !this.studentRollNumber ||
             !this.parentsEmail ||
+            !this.parentsPhone ||
+            !this.fatherName ||
             !this.face ||
             !this.department
         ) {
-            throw new Error('Student must have all fields except password');
+            throw new Error('Student must have all required fields');
         }
 
         this.password = undefined;
