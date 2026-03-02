@@ -90,6 +90,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const Student = require('../models/userModel');
+const { generateChallan } = require('../controllers/challanController');
 
 let cachedStudents = [];
 
@@ -97,94 +98,6 @@ const loadStudents = async () => {
     cachedStudents = await Student.find({});
     console.log("📚 Students cached in memory", cachedStudents.length, "students loaded");
 };
-
-// const processWithGemini = async (cameraFramePath, camera) => {
-//     try {
-//         console.log("🚀 Sending frame to Gemini...");
-
-//         const students = cachedStudents;
-
-//         // Read camera frame as base64
-//         const cameraBase64 = fs.readFileSync(cameraFramePath, { encoding: "base64" });
-
-//         // Prepare prompt text
-//         const promptText = `
-// You are a school surveillance AI.
-// Compare the camera image to the registered students below.
-// Identify:
-// - matched student
-// - rollNo
-// - action (smoking, fighting, normal)
-// - short description
-
-// Return ONLY valid JSON.
-// `;
-
-//         // Prepare multimodal content
-//         const parts = [
-//             { text: promptText },
-//             // camera frame
-//             {
-//                 inlineData: {
-//                     mimeType: "image/jpeg",
-//                     data: cameraBase64
-//                 }
-//             }
-//         ];
-
-
-//         for (const student of students) {
-//             const studentImagePath = path.join(__dirname, "../../uploads", `${student.studentRollNumber}.jpeg`);
-//             if (fs.existsSync(studentImagePath)) {
-//                 const studentBase64 = fs.readFileSync(studentImagePath, { encoding: "base64" });
-
-//                 console.log(`✅ Loaded student image: ${student.name}, RollNo: ${student.studentRollNumber}, Size: ${studentBase64.length} bytes`);
-
-//                 // Add text label + image
-//                 parts.push(
-//                     { text: `Student Name: ${student.name}, RollNo: ${student.studentRollNumber}` },
-//                     {
-//                         inlineData: {
-//                             mimeType: "image/jpeg",
-//                             data: studentBase64
-//                         }
-//                     }
-//                 );
-//             } else {
-//                 console.warn(`⚠️ Student image NOT found: ${student.name}, RollNo: ${student.studentRollNumber}`);
-//             }
-//         }
-
-//         // Call Gemini
-//         const response = await axios.post(
-//             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-//             {
-//                 contents: [{ parts }]
-//             }
-//         );
-
-//         const text = response.data.candidates[0].content.parts[0].text;
-//         console.log("🎯 Raw Gemini Response:", text);
-
-//         // Parse JSON safely
-//         let parsed;
-//         try {
-//             const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-//             parsed = JSON.parse(cleanText);
-//         } catch (err) {
-//             console.error("❌ Invalid JSON from Gemini");
-//             return null;
-//         }
-
-//         console.log("✅ Parsed Gemini JSON:", parsed);
-//         return parsed;
-
-//     } catch (error) {
-//         console.error("❌ Gemini API Error:", error.message);
-//         return null;
-//     }
-// };
-
 
 const processWithGemini = async (cameraFramePath, camera) => {
     try {
@@ -315,6 +228,12 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         }
 
         console.log("✅ Parsed Gemini JSON:", parsed);
+        // Generate challan for each violation detected
+        for (const result of parsed) {
+            console.log("result send")
+            await generateChallan(result);
+        }
+
         return parsed;
 
     } catch (error) {

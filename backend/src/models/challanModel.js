@@ -33,18 +33,17 @@ const challanSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["unpaid", "partially_paid", "paid", "overdue"],
+            enum: ["unpaid", "paid", "overdue"],
             default: "unpaid"
         }
     },
     { timestamps: true }
 );
 
-challanSchema.pre("save", function (next) {
+challanSchema.pre("save", async function () {
     if (this.challanDueDate < this.challanIssueDate) {
-        return next(new Error("Due date cannot be before issue date"));
+        throw new Error("Due date cannot be before issue date");
     }
-    next();
 });
 
 const challanModel = mongoose.model('challan', challanSchema);
