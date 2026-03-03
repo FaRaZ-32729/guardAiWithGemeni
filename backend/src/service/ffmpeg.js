@@ -184,6 +184,69 @@ const captureFrame = async (camera) => {
         });
 };
 
+// const captureFrame = async (camera) => {
+//     // ✅ Skip capture completely if Gemini is busy
+//     if (isGeminiProcessing) {
+//         console.log("⏳ Gemini busy → skipping capture");
+//         return;
+//     }
+
+//     const filename = `camera_${camera._id}.jpg`;
+//     const outputPath = path.join(captureDir, filename);
+//     const isRtsp = camera.streamUrl.toLowerCase().startsWith('rtsp://');
+
+//     return new Promise((resolve) => {
+//         let command = ffmpeg(camera.streamUrl)
+//             .outputOptions([
+//                 '-frames:v 1',
+//                 '-q:v 2',
+//                 '-update 1'
+//             ]);
+
+//         if (!isRtsp) {
+//             command.inputOptions([
+//                 '-re',
+//                 '-timeout 10000000',
+//             ]);
+//         }
+
+//         if (isRtsp) {
+//             command.inputOptions([
+//                 '-rtsp_transport tcp',
+//                 '-timeout 10000000',
+//             ]);
+//         }
+
+//         command
+//             .output(outputPath)
+//             .on('end', async () => {
+//                 console.log(`✅ Screenshot saved for ${camera.cameraName}: ${filename}`);
+
+
+
+//                 isGeminiProcessing = true; // 🔒 LOCK
+
+//                 try {
+//                     const personDetected = await containsPerson(outputPath);
+//                     if (!personDetected) return resolve();
+//                     await processWithGemini(outputPath, camera);
+//                 } catch (err) {
+//                     console.error("Gemini Processing Error:", err.message);
+//                 } finally {
+//                     isGeminiProcessing = false; // ✅ unlock immediately, no setTimeout
+//                     console.log("🔓 Gemini unlocked → ready for next frame");
+//                     await new Promise(r => setTimeout(r, 1000));
+//                     resolve();
+//                 }
+//             })
+//             .on('error', (err) => {
+//                 console.error(`❌ Error capturing frame for ${camera.cameraName}:`, err.message);
+//                 isGeminiProcessing = false; // ✅ also unlock on FFmpeg error
+//                 resolve();
+//             })
+//             .run();
+//     });
+// };
 /**
  * Start the capture service
  */

@@ -35,7 +35,13 @@ const challanSchema = new mongoose.Schema(
             type: String,
             enum: ["unpaid", "paid", "overdue"],
             default: "unpaid"
-        }
+        },
+
+        violationType: {
+            type: String,
+            enum: ["smoking", "fighting"],
+            required: true
+        },
     },
     { timestamps: true }
 );

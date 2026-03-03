@@ -3,8 +3,11 @@ const path = require('path');
 const axios = require('axios');
 const Student = require('../models/userModel');
 const { generateChallan } = require('../controllers/challanController');
+const compressImageToBase64 = require('../middleware/compressFrames');
 
 let cachedStudents = [];
+
+console.log(">>>>>>>>>>>>>>>>>", process.env.GEMINI_API_KEY)
 
 const loadStudents = async () => {
     cachedStudents = await Student.find({});
@@ -18,7 +21,8 @@ const processWithGemini = async (cameraFramePath, camera) => {
         const students = cachedStudents;
 
         // Read camera frame as base64
-        const cameraBase64 = fs.readFileSync(cameraFramePath, { encoding: "base64" });
+        // const cameraBase64 = fs.readFileSync(cameraFramePath, { encoding: "base64" });
+        const cameraBase64 = await compressImageToBase64(cameraFramePath);
 
         // Prepare prompt text
         const promptText = `
@@ -84,7 +88,8 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         for (const student of students) {
             const studentImagePath = path.join(__dirname, "../../uploads", `${student.studentRollNumber}.jpeg`);
             if (fs.existsSync(studentImagePath)) {
-                const studentBase64 = fs.readFileSync(studentImagePath, { encoding: "base64" });
+                // const studentBase64 = fs.readFileSync(studentImagePath, { encoding: "base64" });
+                const studentBase64 = await compressImageToBase64(studentImagePath);
 
                 console.log(`✅ Loaded student image: ${student.name}, RollNo: ${student.studentRollNumber}, Size: ${studentBase64.length} bytes`);
 
@@ -149,7 +154,11 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         return parsed;
 
     } catch (error) {
-        console.error("❌ Gemini API Error:", error.message);
+        if (error.response) {
+            console.error("❌ Gemini API Error:", JSON.stringify(error.response.data, null, 2));
+        } else {
+            console.error("❌ Gemini API Error:", error.message);
+        }
         return null;
     }
 };

@@ -43,7 +43,7 @@ app.use("/api", centralRoute)
 
 
 app.get("/", (req, res) => {
-    res.send("Hellow FaRaZ to IOTFIY-LuckyOne");
+    res.send("Hellow FaRaZ to IOTFIY-AI-Guard");
 });
 
 (async () => {
@@ -57,4 +57,4 @@ startCameraCaptureService();
 // Start server
 app.listen(port, () => {
     console.log(`AI-Guard Server is running on port : ${port}`);
-})
+});

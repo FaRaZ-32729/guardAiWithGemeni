@@ -1,3 +1,4 @@
+const sendEmail = require('../middleware/sendEmail');
 const AnonymousViolation = require('../models/anonymousViolationModel');
 const Challan = require('../models/challanModel');
 const User = require('../models/userModel');
@@ -8,10 +9,80 @@ const CHALLAN_AMOUNTS = {
     fighting: 1000
 };
 
+// const generateChallan = async (geminiResult) => {
+//     console.log(`gemeni result in generate challan ${geminiResult}`)
+//     try {
+
+//         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
+//             if (['smoking', 'fighting'].includes(geminiResult.action)) {
+//                 const record = new AnonymousViolation({
+//                     name: "Anonymous",
+//                     action: geminiResult.action,
+//                     confidence: geminiResult.confidence,
+//                     description: geminiResult.description
+//                 });
+//                 await record.save();
+//                 console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
+//             }
+//             return;
+//         }
+
+//         // Only generate for smoking or fighting
+//         if (!['smoking', 'fighting'].includes(geminiResult.action)) return;
+
+//         // Only for matched (known) students
+//         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
+//             console.log("Anonymous person detected with violation → cannot generate challan");
+//             return;
+//         }
+
+//         // Find student by rollNo
+//         const student = await User.findOne({ studentRollNumber: geminiResult.rollNo });
+//         if (!student) {
+//             console.warn(`Student not found in DB for rollNo: ${geminiResult.rollNo}`);
+//             return;
+//         }
+
+//         // Get last unpaid challan balance
+//         const lastChallan = await Challan.findOne({ studentId: student._id }).sort({ createdAt: -1 });
+//         const previousBalance = lastChallan ? lastChallan.currentChallan : 0;
+
+//         // Dates
+//         const issueDate = new Date();
+//         const dueDate = new Date();
+//         dueDate.setDate(dueDate.getDate() + 7); // 7 days to pay
+
+
+//         // Create challan
+//         const challan = new Challan({
+//             studentId: student._id,
+//             previousChallanBalance: previousBalance,
+//             currentChallan: previousBalance + CHALLAN_AMOUNTS[geminiResult.action],
+//             challanIssueDate: issueDate,
+//             challanDueDate: dueDate,
+//             status: 'unpaid'
+//         });
+
+//         console.log("generated challan ", challan);
+
+//         await challan.save();
+
+//         console.log(` Challan generated for ${geminiResult.name} | Action: ${geminiResult.action} | Amount: ${CHALLAN_AMOUNTS[geminiResult.action]}`);
+
+//     } catch (error) {
+//         console.error(" Challan Generation Error:", error.message);
+//     }
+// };
+
+
+// GET /api/challan/:id
+
 const generateChallan = async (geminiResult) => {
-    console.log(`gemeni result in generate challan ${geminiResult}`)
+    console.log(`gemini result in generate challan`, geminiResult);
+
     try {
 
+        // If not matched → save anonymous violation
         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
             if (['smoking', 'fighting'].includes(geminiResult.action)) {
                 const record = new AnonymousViolation({
@@ -25,56 +96,161 @@ const generateChallan = async (geminiResult) => {
             }
             return;
         }
-        
-        // Only generate for smoking or fighting
+
         if (!['smoking', 'fighting'].includes(geminiResult.action)) return;
 
-        // Only for matched (known) students
-        if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
-            console.log("Anonymous person detected with violation → cannot generate challan");
-            return;
-        }
-
-        // Find student by rollNo
+        // Find student
         const student = await User.findOne({ studentRollNumber: geminiResult.rollNo });
+
         if (!student) {
             console.warn(`Student not found in DB for rollNo: ${geminiResult.rollNo}`);
             return;
         }
 
-        // Get last unpaid challan balance
-        const lastChallan = await Challan.findOne({ studentId: student._id }).sort({ createdAt: -1 });
+        // Get previous balance
+        const lastChallan = await Challan
+            .findOne({ studentId: student._id })
+            .sort({ createdAt: -1 });
+
         const previousBalance = lastChallan ? lastChallan.currentChallan : 0;
 
-        // Dates
         const issueDate = new Date();
         const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 7); // 7 days to pay
+        dueDate.setDate(dueDate.getDate() + 7);
 
+        const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
 
-        // Create challan
         const challan = new Challan({
             studentId: student._id,
             previousChallanBalance: previousBalance,
-            currentChallan: previousBalance + CHALLAN_AMOUNTS[geminiResult.action],
+            currentChallan: previousBalance + violationAmount,
             challanIssueDate: issueDate,
             challanDueDate: dueDate,
+            violationType: geminiResult.action,
             status: 'unpaid'
         });
 
-        console.log("generated challan ", challan);
 
         await challan.save();
 
-        console.log(` Challan generated for ${geminiResult.name} | Action: ${geminiResult.action} | Amount: ${CHALLAN_AMOUNTS[geminiResult.action]}`);
+        console.log(`✅ Challan generated for ${student.name} | Action: ${geminiResult.action}`);
+
+        //     const recipients = [student.email, student.parentsEmail]
+
+        //     // 📧 Send Email with Attachment
+        //     await sendEmail(
+        //         recipients,
+        //         `Violation Challan Notice - ${student.name}`,
+        //         `
+        // <div style="font-family: Arial, sans-serif; background:#f2f2f2; padding:20px;">
+        //   <div style="max-width:750px; margin:auto; background:white; padding:20px; border:1px solid #000;">
+
+        //     <!-- Header -->
+        //     <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px;">
+        //       <img src="https://iqra.edu.pk/wp-content/uploads/2025/08/LOGO-IU-01-2048x495-1.png"
+        //            style="width:200px;" />
+        //       <h2 style="margin:5px 0;">DISCIPLINARY CHALLAN</h2>
+        //       <p style="margin:0;">Depositor's Copy</p>
+        //     </div>
+
+        //     <br/>
+
+        //     <!-- Student Info Table -->
+        //     <table style="width:100%; border-collapse:collapse; font-size:14px;">
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Student Name</b></td>
+        //         <td style="border:1px solid #000; padding:8px;">${student.name}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Father Name</b></td>
+        //         <td style="border:1px solid #000; padding:8px;">${student.fatherName || "N/A"}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Phone Number</b></td>
+        //         <td style="border:1px solid #000; padding:8px;">${student.phoneNumber || "N/A"}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Roll Number</b></td>
+        //         <td style="border:1px solid #000; padding:8px;">${student.studentRollNumber}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Program</b></td>
+        //         <td style="border:1px solid #000; padding:8px;">${student.program || "N/A"}</td>
+        //       </tr>
+        //     </table>
+
+        //     <br/>
+
+        //     <!-- Challan Details -->
+        //     <table style="width:100%; border-collapse:collapse; font-size:14px;">
+        //       <tr>
+        //         <th style="border:1px solid #000; padding:8px;">Description</th>
+        //         <th style="border:1px solid #000; padding:8px;">Amount (PKR)</th>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;">Previous Challan Balance</td>
+        //         <td style="border:1px solid #000; padding:8px;">${previousBalance}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;">
+        //           Violation (${geminiResult.action.toUpperCase()})
+        //         </td>
+        //         <td style="border:1px solid #000; padding:8px;">${violationAmount}</td>
+        //       </tr>
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Total Payable</b></td>
+        //         <td style="border:1px solid #000; padding:8px; color:red;">
+        //           <b>${challan.currentChallan}</b>
+        //         </td>
+        //       </tr>
+        //     </table>
+
+        //     <br/>
+
+        //     <!-- Dates -->
+        //     <table style="width:100%; border-collapse:collapse;">
+        //       <tr>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Issue Date:</b> ${issueDate.toDateString()}</td>
+        //         <td style="border:1px solid #000; padding:8px;"><b>Due Date:</b> ${dueDate.toDateString()}</td>
+        //       </tr>
+        //     </table>
+
+        //     <br/>
+
+        //     <!-- JazzCash Payment Details -->
+        //     <div style="border:1px solid #000; padding:10px;">
+        //       <h3 style="margin-top:0;">Payment Method - JazzCash</h3>
+        //       <p><b>Account Title:</b> FARAZ Siyal </p>
+        //       <p><b>JazzCash Number:</b> 03042240997 </p>
+        //       <p style="color:red; font-size:13px;">
+        //         Please send payment screenshot to accounts department after transaction.
+        //       </p>
+        //     </div>
+
+        //     <br/>
+
+        //     <div style="text-align:center; font-size:12px; color:#555;">
+        //       This is a system generated challan. No signature required.
+        //     </div>
+
+        //     <br/>
+
+        //     <div style="border-top:1px dashed #000; padding-top:10px; text-align:center;">
+        //       © ${new Date().getFullYear()} Campus Administration | All Rights Reserved
+        //     </div>
+
+        //   </div>
+        // </div>
+        // `);
+
+
+        console.log("📧 Challan email sent to student and parent.");
 
     } catch (error) {
-        console.error(" Challan Generation Error:", error.message);
+        console.error("❌ Challan Generation Error:", error.message);
     }
 };
 
-
-// GET /api/challan/:id
 const getSingleChallanById = async (req, res) => {
     try {
         const { id } = req.params;
