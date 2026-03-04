@@ -1,4 +1,4 @@
-import { Camera, Wifi, WifiOff, Trash2 } from "lucide-react";
+import { Camera, Wifi, Cctv, WifiOff, Trash2 } from "lucide-react";
 
 const cameras = [
     { id: "CAM-01", location: "Main Entrance", status: "online", feed: "#" },
@@ -6,13 +6,13 @@ const cameras = [
     { id: "CAM-03", location: "Library", status: "online", feed: "#" },
     { id: "CAM-04", location: "Hallway A", status: "online", feed: "#" },
     { id: "CAM-05", location: "Parking Lot", status: "offline", feed: "#" },
-    { id: "CAM-06", location: "Gymnasium", status: "online", feed: "#" },
-    { id: "CAM-07", location: "Restricted Zone", status: "online", feed: "#" },
-    { id: "CAM-08", location: "Admin Block", status: "online", feed: "#" },
-    { id: "CAM-09", location: "Sports Ground", status: "online", feed: "#" },
-    { id: "CAM-10", location: "Science Lab", status: "offline", feed: "#" },
-    { id: "CAM-11", location: "Computer Lab", status: "online", feed: "#" },
-    { id: "CAM-12", location: "Back Gate", status: "online", feed: "#" },
+    // { id: "CAM-06", location: "Gymnasium", status: "online", feed: "#" },
+    // { id: "CAM-07", location: "Restricted Zone", status: "online", feed: "#" },
+    // { id: "CAM-08", location: "Admin Block", status: "online", feed: "#" },
+    // { id: "CAM-09", location: "Sports Ground", status: "online", feed: "#" },
+    // { id: "CAM-10", location: "Science Lab", status: "offline", feed: "#" },
+    // { id: "CAM-11", location: "Computer Lab", status: "online", feed: "#" },
+    // { id: "CAM-12", location: "Back Gate", status: "online", feed: "#" },
 ];
 
 export default function Cameras() {
@@ -25,6 +25,11 @@ export default function Cameras() {
                         {cameras.filter(c => c.status === "online").length} of {cameras.length} cameras online
                     </p>
                 </div>
+                {/* <button className="flex gap-2 cursor-pointer bg-blue ">  <Cctv /> Add</button> */}
+                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold tracking-widest uppercase hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer">
+                    <Camera size={15} />
+                    Add Camera
+                </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
