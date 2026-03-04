@@ -1,7 +1,7 @@
 import { Users, AlertTriangle, UserX, Cctv   } from "lucide-react";
 import StatCard from "../components/statCards";
-import ViolationChart from "../components/violationChart";
 import RecentViolations from "../components/recentViolation";
+import ViolationChart from "../components/violationChart";
 
 
 const stats = [
