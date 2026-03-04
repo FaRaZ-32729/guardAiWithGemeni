@@ -230,13 +230,13 @@
 // }
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Shield, Eye, EyeOff, Lock, Mail, AlertTriangle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-    const { login, loading, error, clearError } = useAuth();
+    const { login, loading, error, clearError, user } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -260,12 +260,16 @@ export default function Login() {
             return;
         }
 
-        const success = await login(email, password);
+        await login(email, password);
 
-        if (success) {
+
+    };
+
+    useEffect(() => {
+        if (user) {
             navigate("/home", { replace: true });
         }
-    };
+    }, [user, navigate]);
 
     const handleChange = (setter) => (e) => {
         setter(e.target.value);
