@@ -7,7 +7,6 @@ const compressImageToBase64 = require('../middleware/compressFrames');
 
 let cachedStudents = [];
 
-console.log(">>>>>>>>>>>>>>>>>", process.env.GEMINI_API_KEY)
 
 const loadStudents = async () => {
     cachedStudents = await Student.find({});
@@ -148,7 +147,7 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         // Generate challan for each violation detected
         for (const result of parsed) {
             console.log("result send")
-            await generateChallan(result);
+            await generateChallan(result, cameraFramePath   );
         }
 
         return parsed;

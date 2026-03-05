@@ -3,6 +3,8 @@ const AnonymousViolation = require('../models/anonymousViolationModel');
 const Challan = require('../models/challanModel');
 const User = require('../models/userModel');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
 const CHALLAN_AMOUNTS = {
     smoking: 500,
@@ -77,7 +79,7 @@ const CHALLAN_AMOUNTS = {
 
 // GET /api/challan/:id
 
-const generateChallan = async (geminiResult) => {
+const generateChallan = async (geminiResult, cameraFramePath) => {
     console.log(`gemini result in generate challan`, geminiResult);
 
     try {
@@ -120,6 +122,21 @@ const generateChallan = async (geminiResult) => {
 
         const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
 
+        // save evidance evidence
+        const violationsDir = path.join(__dirname, "../../violations");
+
+        if (!fs.existsSync(violationsDir)) {
+            fs.mkdirSync(violationsDir, { recursive: true });
+            console.log("new folder created")
+        }
+
+        const filename = `violation_${student.studentRollNumber}_${Date.now()}.jpg`;
+        console.log(filename)
+        const violationImagePath = path.join(violationsDir, filename);
+
+        // copy frame as evidence
+        fs.copyFileSync(cameraFramePath, violationImagePath);
+
         const challan = new Challan({
             studentId: student._id,
             previousChallanBalance: previousBalance,
@@ -127,7 +144,8 @@ const generateChallan = async (geminiResult) => {
             challanIssueDate: issueDate,
             challanDueDate: dueDate,
             violationType: geminiResult.action,
-            status: 'unpaid'
+            status: 'unpaid',
+            evidenceImage: violationImagePath
         });
 
 

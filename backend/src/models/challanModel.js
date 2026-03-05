@@ -42,6 +42,10 @@ const challanSchema = new mongoose.Schema(
             enum: ["smoking", "fighting"],
             required: true
         },
+        
+        evidenceImage: {
+            type: String,
+        },
     },
     { timestamps: true }
 );
