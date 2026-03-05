@@ -33,6 +33,8 @@
 import { Shield, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { api } from "../config/AxiosInstance";
+import { useNavigate, useNavigation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const TOKEN_KEY = "exp_token";
 const USER_KEY = "user";
@@ -43,17 +45,30 @@ function clearSession() {
 }
 
 export default function Header({ sidebarOpen, setSidebarOpen }) {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
     const [loggingOut, setLoggingOut] = useState(false);
 
     const handleLogout = async () => {
         setLoggingOut(true);
-        try {
-            const response = await api.post("/auth/logout");
 
-        } catch {
-            // Even if the API call fails, clear the session locally
+        try {
+            const response = await api.delete("/auth/logout");
+
+            console.log("Logout response:", response.data);
+
+            if (response.data?.success) {
+                console.log("Logout successful from server");
+            }
+
+        } catch (error) {
+            console.error("Logout API failed:", error.message);
         } finally {
-            clearSession();
+            logout();
+
+            // Redirect to login page and prevent back navigation
+            navigate("/login", { replace: true });
+
             setLoggingOut(false);
         }
     };

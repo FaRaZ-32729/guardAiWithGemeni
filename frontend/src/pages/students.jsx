@@ -1,5 +1,6 @@
 import { ShieldCheck, ShieldAlert, UserPlus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
+import RegisterStudentModal from "../components/students/RegisterStudentModal";
 
 const students = [
     { id: "S-001", name: "Ahmed Raza", email: "ahmed.raza@campus.edu", grade: "10-A", violations: 3, status: "flagged" },
@@ -16,8 +17,13 @@ const students = [
 
 export default function Students() {
     const [data, setData] = useState(students);
+    const [showModal, setShowModal] = useState(false);
 
     const handleDelete = (id) => setData((prev) => prev.filter((s) => s.id !== id));
+
+    const handleStudentAdded = (newStudent) => {
+        // getAllStudents();
+    };
 
     return (
         <div className="flex flex-col gap-5 p-4 sm:p-6">
@@ -31,9 +37,8 @@ export default function Students() {
                     </p>
                 </div>
 
-                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold tracking-widest uppercase hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer self-start sm:self-auto">
-                    <UserPlus size={15} />
-                    Add Student
+                <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold tracking-widest uppercase hover:bg-cyan-500/20 transition-all">
+                    <UserPlus size={15} /> Add Student
                 </button>
             </div>
 
@@ -97,6 +102,7 @@ export default function Students() {
                     </div>
                 ))}
             </div>
+            {showModal && <RegisterStudentModal onClose={() => setShowModal(false)} onSuccess={handleStudentAdded} />}
         </div>
     );
 }

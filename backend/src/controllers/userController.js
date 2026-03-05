@@ -6,6 +6,8 @@ const path = require("path");
 
 // Register Student
 const registerStudent = async (req, res) => {
+    console.log("req.file:", req.file);   // should show file info
+    console.log("req.body:", req.body);   // should show all text fields
     try {
         const { name, email, studentRollNumber, parentsEmail, parentsPhone, fatherName, department } = req.body;
 
