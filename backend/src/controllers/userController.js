@@ -50,21 +50,6 @@ const registerStudent = async (req, res) => {
     }
 };
 
-//get all students
-const getAllStudents = async (req, res) => {
-    try {
-        const students = await userModel.find({ role: "student" });
-
-        return res.status(200).json({
-            count: students.length,
-            students
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
 const getSingleStudent = async (req, res) => {
     try {
         const { id } = req.params;
@@ -76,6 +61,21 @@ const getSingleStudent = async (req, res) => {
         }
 
         return res.status(200).json(student);
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+//get all students
+const getAllStudents = async (req, res) => {
+    try {
+        const students = await userModel.find({ role: "student" });
+
+        return res.status(200).json({
+            count: students.length,
+            students
+        });
 
     } catch (error) {
         return res.status(500).json({ message: error.message });

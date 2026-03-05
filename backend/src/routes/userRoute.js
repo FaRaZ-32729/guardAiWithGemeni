@@ -5,23 +5,13 @@ const multer = require("multer");
 
 const router = express.Router();
 
-// router.post(
-//     "/register",
-//     upload.single("face"),
-//     registerStudent
-// );
-router.post("/register", (req, res, next) => {
-    upload.single("face")(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            return res.status(400).json({ success: false, message: err.message });
-        } else if (err) {
-            return res.status(400).json({ success: false, message: err.message });
-        }
-        next();
-    });
-}, registerStudent);
-router.get("/all", getAllStudents);
+router.post(
+    "/register",
+    upload.single("face"),
+    registerStudent
+);
 router.get("/single/:id", getSingleStudent);
+router.get("/all", getAllStudents);
 router.put("/update/:id", upload.single("face"), updateStudent);
 router.delete("/delete/:id", deleteStudent);
 

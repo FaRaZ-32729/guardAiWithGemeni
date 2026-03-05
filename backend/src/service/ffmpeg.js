@@ -94,6 +94,7 @@ const { processWithGemini } = require('./geminiService');
 
 // Set FFmpeg path (Windows example)
 ffmpeg.setFfmpegPath('C:\\ProgramData\\ffmpeg-8.0.1-essentials_build\\bin\\ffmpeg.exe');
+// C:\ProgramData\ffmpeg-8.0.1-essentials_build\bin
 
 // Ensure the capture directory exists
 const captureDir = path.join(__dirname, 'public', 'captures');
