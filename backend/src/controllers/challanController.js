@@ -79,22 +79,89 @@ const CHALLAN_AMOUNTS = {
 
 // GET /api/challan/:id
 
-const generateChallan = async (geminiResult, cameraFramePath) => {
+
+
+// If not matched → save anonymous violation
+// if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
+//     if (['smoking', 'fighting'].includes(geminiResult.action)) {
+//         const record = new AnonymousViolation({
+//             name: "Anonymous",
+//             action: geminiResult.action,
+//             confidence: geminiResult.confidence,
+//             description: geminiResult.description
+//         });
+//         await record.save();
+//         console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
+//     }
+//     return;
+// }
+
+// If not matched → save anonymous violation
+// if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
+//     if (['smoking', 'fighting'].includes(geminiResult.action)) {
+
+//         // Save anonymous violation image
+//         const violationsDir = path.join(__dirname, "../../violations");
+//         if (!fs.existsSync(violationsDir)) {
+//             fs.mkdirSync(violationsDir, { recursive: true });
+//         }
+
+//         const filename = `violation_anonymous_${Date.now()}.jpg`;
+//         const violationImagePath = path.join(violationsDir, filename);
+//         fs.copyFileSync(snapshotPath, violationImagePath);
+//         console.log(`📸 Anonymous violation image saved: ${filename}`);
+
+//         const record = new AnonymousViolation({
+//             name: "Anonymous",
+//             action: geminiResult.action,
+//             confidence: geminiResult.confidence,
+//             description: geminiResult.description,
+//             evidenceImage: violationImagePath  
+//         });
+//         await record.save();
+//         console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
+//     }
+//     return;
+// }
+
+
+const generateChallan = async (geminiResult, snapshotPath) => {
     console.log(`gemini result in generate challan`, geminiResult);
 
     try {
 
-        // If not matched → save anonymous violation
         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
             if (['smoking', 'fighting'].includes(geminiResult.action)) {
-                const record = new AnonymousViolation({
+
+                const violationsDir = path.join(__dirname, "../../violations");
+                if (!fs.existsSync(violationsDir)) {
+                    fs.mkdirSync(violationsDir, { recursive: true });
+                }
+
+                const filename = `violation_anonymous_${Date.now()}.jpg`;
+                const violationImagePath = path.join(violationsDir, filename);
+                fs.copyFileSync(snapshotPath, violationImagePath);
+
+                const issueDate = new Date();
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 7);
+
+                // ✅ Save in same Challan model
+                const challan = new Challan({
+                    isAnonymous: true,
                     name: "Anonymous",
-                    action: geminiResult.action,
-                    confidence: geminiResult.confidence,
-                    description: geminiResult.description
+                    previousChallanBalance: 0,
+                    currentChallan: 0,
+                    challanIssueDate: issueDate,
+                    challanDueDate: dueDate,
+                    violationType: geminiResult.action,
+                    evidenceImage: violationImagePath,
+                    description: geminiResult.description,
+                    status: 'unpaid'
                 });
-                await record.save();
-                console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
+
+                await challan.save();
+                console.log(`⚠️ Anonymous challan saved | Action: ${geminiResult.action}`);
             }
             return;
         }
@@ -135,7 +202,7 @@ const generateChallan = async (geminiResult, cameraFramePath) => {
         const violationImagePath = path.join(violationsDir, filename);
 
         // copy frame as evidence
-        fs.copyFileSync(cameraFramePath, violationImagePath);
+        fs.copyFileSync(snapshotPath, violationImagePath);
 
         const challan = new Challan({
             studentId: student._id,
@@ -145,7 +212,8 @@ const generateChallan = async (geminiResult, cameraFramePath) => {
             challanDueDate: dueDate,
             violationType: geminiResult.action,
             status: 'unpaid',
-            evidenceImage: violationImagePath
+            evidenceImage: violationImagePath,
+            description: geminiResult.description
         });
 
 

@@ -7,8 +7,9 @@ const compressImageToBase64 = async (imagePath) => {
     const fileBuffer = fs.readFileSync(imagePath);
 
     const compressed = await sharp(fileBuffer)  // ✅ pass buffer, not file path
+        .rotate()
         .resize(640, 640, { fit: 'inside' })
-        .jpeg({ quality: 70 })
+        .jpeg({ quality: 50 })
         .toBuffer();
 
     return compressed.toString('base64');

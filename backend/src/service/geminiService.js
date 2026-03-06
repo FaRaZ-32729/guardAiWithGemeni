@@ -17,11 +17,14 @@ const processWithGemini = async (cameraFramePath, camera) => {
     try {
         console.log("🚀 Sending frame to Gemini...");
 
+        const snapshotPath = cameraFramePath.replace('.jpg', `_snapshot_${Date.now()}.jpg`);
+        fs.copyFileSync(cameraFramePath, snapshotPath);
+
         const students = cachedStudents;
 
         // Read camera frame as base64
         // const cameraBase64 = fs.readFileSync(cameraFramePath, { encoding: "base64" });
-        const cameraBase64 = await compressImageToBase64(cameraFramePath);
+        const cameraBase64 = await compressImageToBase64(snapshotPath);
 
         // Prepare prompt text
         const promptText = `
@@ -147,12 +150,23 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         // Generate challan for each violation detected
         for (const result of parsed) {
             console.log("result send")
-            await generateChallan(result, cameraFramePath   );
+            // await generateChallan(result, cameraFramePath);
+            await generateChallan(result, snapshotPath);
+        }
+        if (fs.existsSync(snapshotPath)) {
+            fs.unlinkSync(snapshotPath);
+            console.log("🗑️ Snapshot deleted:", snapshotPath);
         }
 
         return parsed;
 
     } catch (error) {
+
+        if (snapshotPath && fs.existsSync(snapshotPath)) {
+            fs.unlinkSync(snapshotPath);
+            console.log("🗑️ Snapshot deleted on error:", snapshotPath);
+        }
+
         if (error.response) {
             console.error("❌ Gemini API Error:", JSON.stringify(error.response.data, null, 2));
         } else {
