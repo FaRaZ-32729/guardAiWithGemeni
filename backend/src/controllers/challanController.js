@@ -6,9 +6,10 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 
+
 const CHALLAN_AMOUNTS = {
-    smoking: 500,
-    fighting: 1000
+    smoking: process.env.SMOKING,
+    fighting: process.env.FIGHTING
 };
 
 // const generateChallan = async (geminiResult) => {
@@ -185,7 +186,7 @@ const generateChallan = async (geminiResult, snapshotPath) => {
 
         const issueDate = new Date();
         const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 7);
+        dueDate.setDate(dueDate.getDate() + process.env.DUEDATE);
 
         const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
 
@@ -207,7 +208,7 @@ const generateChallan = async (geminiResult, snapshotPath) => {
         const challan = new Challan({
             studentId: student._id,
             previousChallanBalance: previousBalance,
-            currentChallan: previousBalance + violationAmount,
+            currentChallan: violationAmount,
             challanIssueDate: issueDate,
             challanDueDate: dueDate,
             violationType: geminiResult.action,
@@ -407,7 +408,7 @@ const getAllChallans = async (req, res) => {
 
         const [challans, total] = await Promise.all([
             Challan.find(filter)
-                .populate('studentId', 'name email studentRollNumber department')
+                .populate('studentId', 'name email studentRollNumber department fatherName ')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(parseInt(limit)),
