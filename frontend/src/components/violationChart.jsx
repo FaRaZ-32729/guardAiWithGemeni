@@ -1,161 +1,126 @@
-import { useState } from "react";
+import { useMemo } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend
+} from "recharts";
 
-const data = {
-  today: [
-    { time: "8AM", count: 1 },
-    { time: "9AM", count: 3 },
-    { time: "10AM", count: 2 },
-    { time: "11AM", count: 5 },
-    { time: "12PM", count: 4 },
-    { time: "1PM", count: 6 },
-    { time: "2PM", count: 2 },
-    { time: "3PM", count: 3 },
-  ],
-  week: [
-    { time: "Mon", count: 8 },
-    { time: "Tue", count: 14 },
-    { time: "Wed", count: 6 },
-    { time: "Thu", count: 19 },
-    { time: "Fri", count: 11 },
-    { time: "Sat", count: 3 },
-    { time: "Sun", count: 1 },
-  ],
-  month: [
-    { time: "W1", count: 22 },
-    { time: "W2", count: 38 },
-    { time: "W3", count: 29 },
-    { time: "W4", count: 45 },
-  ],
-};
+// ── Build last-7-days data from challans array ────────────────────────────
+function buildChartData(challans) {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push({
+      label: d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+      dateStr: d.toDateString(),
+      smoking: 0,
+      fighting: 0,
+    });
+  }
 
-const tabs = [
-  { id: "today", label: "Today" },
-  { id: "week", label: "This Week" },
-  { id: "month", label: "This Month" },
-];
+  challans.forEach((c) => {
+    if (!c.challanIssueDate) return;
+    const ds = new Date(c.challanIssueDate).toDateString();
+    const day = days.find(d => d.dateStr === ds);
+    if (!day) return;
+    if (c.violationType === "smoking") day.smoking++;
+    if (c.violationType === "fighting") day.fighting++;
+  });
 
-export default function ViolationChart() {
-  const [active, setActive] = useState("today");
-  const [hovered, setHovered] = useState(null);
+  return days.map(({ label, smoking, fighting }) => ({ label, smoking, fighting }));
+}
 
-  const points = data[active];
-  const maxVal = Math.max(...points.map((p) => p.count));
+// ── Custom tooltip ────────────────────────────────────────────────────────
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#0d0f16] border border-[#1e2535] rounded-xl px-3 py-2 text-xs shadow-xl">
+      <p className="text-slate-400 mb-1.5 font-bold uppercase tracking-widest text-[10px]">{label}</p>
+      {payload.map(p => (
+        <div key={p.name} className="flex items-center gap-2 py-0.5">
+          <span className="w-2 h-2 rounded-full" style={{ background: p.fill }} />
+          <span className="text-slate-400 capitalize">{p.name}</span>
+          <span className="text-white font-bold ml-auto pl-4">{p.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function ViolationChart({ challans, loading = false }) {
+  const safe = Array.isArray(challans) ? challans : [];
+  const data = useMemo(() => buildChartData(safe), [safe]);
+  const totalWeek = safe.filter(c => {
+    if (!c.challanIssueDate) return false;
+    const d = new Date(c.challanIssueDate);
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    return d >= weekAgo;
+  }).length;
 
   return (
-    <div className="flex flex-col gap-4 p-5 rounded-2xl border border-[#1e2535] bg-[#0d0f16]">
+    <div className="flex flex-col gap-4 p-4 sm:p-5 rounded-2xl bg-[#0d0f16] border border-[#1e2535] h-full">
+
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-white font-semibold text-sm tracking-wide">
-            Violation Analytics
-          </h3>
+          <h2 className="text-white text-sm font-bold tracking-tight">Violations — Last 7 Days</h2>
           <p className="text-slate-500 text-xs mt-0.5">
-            Incidents detected by AI surveillance
+            {loading ? "Loading..." : `${totalWeek} incidents this week`}
           </p>
         </div>
-
-        {/* Period tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-[#1a2035] border border-[#1e2535]">
-          {tabs.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setActive(id)}
-              className={`
-                px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200
-                ${active === id
-                  ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-                  : "text-slate-500 hover:text-slate-300"
-                }
-              `}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
+          <span className="flex items-center gap-1.5 text-amber-400">
+            <span className="w-2.5 h-2.5 rounded-sm bg-amber-400/80" /> Smoking
+          </span>
+          <span className="flex items-center gap-1.5 text-red-400">
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-400/80" /> Fighting
+          </span>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="flex items-end gap-2 h-40 sm:h-52 w-full relative">
-        {/* Y-axis grid lines */}
-        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="border-t border-[#1e2535]/60 w-full" />
-          ))}
-        </div>
-
-        {/* Bars */}
-        {points.map((point, i) => {
-          const heightPct = maxVal > 0 ? (point.count / maxVal) * 100 : 0;
-          const isHovered = hovered === i;
-
-          return (
-            <div
-              key={i}
-              className="flex flex-col items-center gap-1.5 flex-1 h-full justify-end relative"
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              {/* Tooltip */}
-              {isHovered && (
-                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#1a2035] border border-cyan-500/30 text-cyan-300 text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap z-10">
-                  {point.count} violations
-                </div>
-              )}
-
-              {/* Bar */}
-              <div
-                className="w-full rounded-t-lg transition-all duration-500 relative overflow-hidden cursor-pointer"
-                style={{ height: `${Math.max(heightPct, 4)}%` }}
-              >
-                <div
-                  className={`
-                    absolute inset-0 rounded-t-lg transition-all duration-200
-                    ${isHovered
-                      ? "bg-cyan-400"
-                      : "bg-gradient-to-t from-cyan-600/40 to-cyan-400/80"
-                    }
-                  `}
-                />
-                {isHovered && (
-                  <div className="absolute inset-0 bg-cyan-400/20 blur-sm" />
-                )}
+      <div className="flex-1 min-h-0" style={{ height: 220 }}>
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-3 animate-pulse">
+              <div className="flex items-end gap-2">
+                {[40, 70, 50, 90, 60, 80, 45].map((h, i) => (
+                  <div key={i} className="w-6 rounded-t bg-[#1e2535]" style={{ height: h }} />
+                ))}
               </div>
-
-              {/* Label */}
-              <span className="text-[10px] text-slate-600 tracking-wide shrink-0">
-                {point.time}
-              </span>
+              <div className="h-2 w-32 rounded bg-[#1e2535]" />
             </div>
-          );
-        })}
-      </div>
-
-      {/* Summary row */}
-      <div className="flex flex-wrap gap-3 pt-2 border-t border-[#1e2535]">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-cyan-400" />
-          <span className="text-xs text-slate-400">
-            Total:{" "}
-            <span className="text-white font-semibold">
-              {points.reduce((s, p) => s + p.count, 0)}
-            </span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-red-400" />
-          <span className="text-xs text-slate-400">
-            Peak:{" "}
-            <span className="text-white font-semibold">
-              {maxVal} incidents
-            </span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <span className="text-[10px] text-slate-600 uppercase tracking-widest">
-            AI Confidence: 94%
-          </span>
-        </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} barGap={3} barCategoryGap="30%">
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#1e2535"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: "#64748b", fontSize: 10, fontFamily: "monospace" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "#64748b", fontSize: 10, fontFamily: "monospace" }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+                width={24}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(30,37,53,0.6)" }} />
+              <Bar dataKey="smoking" fill="rgba(251,191,36,0.75)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="fighting" fill="rgba(248,113,113,0.75)" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
 }
+
+

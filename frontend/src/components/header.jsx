@@ -1,34 +1,3 @@
-// import { Bell, Shield, Menu, X } from "lucide-react";
-
-// export default function Header({ sidebarOpen, setSidebarOpen }) {
-//     return (
-//         <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-[#0d0f16] border-b border-[#1e2535] z-30 shrink-0">
-//             {/* Left: Hamburger + Logo */}
-//             <div className="flex items-center gap-3">
-//                 <button
-//                     onClick={() => setSidebarOpen(!sidebarOpen)}
-//                     className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-[#1a2035] transition-all"
-//                 >
-//                     {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-//                 </button>
-
-//                 <div className="flex items-center gap-2">
-//                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-//                         <Shield size={16} className="text-cyan-400" />
-//                     </div>
-//                     <div className="flex flex-col leading-none">
-//                         <span className="text-white text-sm font-bold tracking-widest uppercase">
-//                             SafeWatch
-//                         </span>
-//                         <span className="text-cyan-500 text-[10px] tracking-[0.2em] uppercase">
-//                             Campus AI
-//                         </span>
-//                     </div>
-//                 </div>
-//             </div>
-//         </header>
-//     );
-// }
 
 import { Shield, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";

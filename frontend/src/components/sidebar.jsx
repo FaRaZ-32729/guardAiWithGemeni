@@ -58,13 +58,6 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
                                 <span className="flex-1 text-sm font-medium tracking-wide">{label}</span>
 
-                                {/* {badge && (
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center
-                    ${isActive ? "bg-cyan-500/20 text-cyan-300" : "bg-red-500/20 text-red-400"}`}>
-                                        {badge}
-                                    </span>
-                                )} */}
-
                                 {isActive && <ChevronRight size={14} className="text-cyan-500/50" />}
                             </>
                         )}

@@ -49,16 +49,10 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color, tr
                     <Icon size={20} className={c.icon} />
                 </div>
                 <p className={`text-3xl font-bold tracking-tight ${c.value}`}>{value}</p>
-                {/* {trend && (
-                    <span className={`text-[11px] font-semibold px-2 py-1 rounded-full ${c.badge}`}>
-                        {trend}
-                    </span>
-                )} */}
             </div>
 
             {/* Value */}
             <div className="relative z-10">
-                {/* <p className={`text-3xl font-bold tracking-tight ${c.value}`}>{value}</p> */}
                 <p className="text-white text-sm font-semibold mt-0.5">{title}</p>
             </div>
         </div>
