@@ -46,13 +46,19 @@ const generateChallanEmail = ({
   dueDate,
 }) => {
 
-  const challanNo = challan.challanId;  
+  const challanNo = challan.challanId;
   const issueDateStr = issueDate instanceof Date
     ? issueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
     : issueDate;
   const dueDateStr = dueDate instanceof Date
     ? dueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
     : dueDate;
+
+
+    // <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px;background:#f3f4f6;border-bottom:1px solid #d1d5db;">
+    //   <span style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#4b5563;">[STUDENT COPY — EMAIL]</span>
+    //   <span style="font-size:9px;font-weight:700;color:#6b7280;font-family:monospace;">#${challanNo}</span>
+    // </div>
 
   return `
 <!DOCTYPE html>
@@ -88,10 +94,12 @@ const generateChallanEmail = ({
     </div>
 
     <!-- Copy bar -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px;background:#f3f4f6;border-bottom:1px solid #d1d5db;">
-      <span style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#4b5563;">[STUDENT COPY — EMAIL]</span>
-      <span style="font-size:9px;font-weight:700;color:#6b7280;font-family:monospace;">#${challanNo}</span>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;border-bottom:1px solid #d1d5db;">
+      <tr>
+        <td style="padding:6px 16px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#4b5563;">[STUDENT COPY — EMAIL]</td>
+        <td style="padding:6px 16px;font-size:9px;font-weight:700;color:#6b7280;font-family:monospace;text-align:right;">#${challanNo}</td>
+      </tr>
+    </table>
 
     <!-- Dates & Violation -->
     <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
@@ -180,3 +188,7 @@ const generateChallanEmail = ({
 
 
 module.exports = generateChallanEmail
+
+
+
+

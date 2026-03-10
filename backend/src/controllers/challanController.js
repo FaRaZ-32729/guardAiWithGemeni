@@ -395,6 +395,7 @@ const getAllChallans = async (req, res) => {
 };
 
 // PATCH /api/challan/:id/status
+
 const updateChallanStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -428,10 +429,11 @@ const updateChallanStatus = async (req, res) => {
 
         // ── Delete all OTHER challans & violations of this student ────────
         if (challan.studentId) {
-            // Find all other challans for this student (excluding the paid one)
+            // Find all challans OLDER than the paid one (not newer)
             const otherChallans = await Challan.find({
                 studentId: challan.studentId,
-                _id: { $ne: challan._id }
+                _id: { $ne: challan._id },
+                createdAt: { $lt: challan.createdAt }
             });
 
             // Delete their evidence images from disk
@@ -448,13 +450,14 @@ const updateChallanStatus = async (req, res) => {
                 }
             }
 
-            // Delete all other challan records from DB
+            // Delete all older challan records from DB
             const deleteResult = await Challan.deleteMany({
                 studentId: challan.studentId,
-                _id: { $ne: challan._id }
+                _id: { $ne: challan._id },
+                createdAt: { $lt: challan.createdAt }
             });
 
-            console.log(`🧹 Cleared ${deleteResult.deletedCount} old challan(s) for student ${challan.studentId}`);
+            console.log(`🧹 Cleared ${deleteResult.deletedCount} older challan(s) for student ${challan.studentId}`);
         }
 
         return res.status(200).json({
@@ -467,6 +470,79 @@ const updateChallanStatus = async (req, res) => {
         return res.status(500).json({ message: error.message || "Server error" });
     }
 };
+
+// const updateChallanStatus = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { status } = req.body;
+
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ message: "Invalid challan ID" });
+//         }
+
+//         if (!status) {
+//             return res.status(400).json({ message: "Status is required" });
+//         }
+
+//         if (!['unpaid', 'paid'].includes(status)) {
+//             return res.status(400).json({ message: "Invalid status. Use: unpaid, paid" });
+//         }
+
+//         const challan = await Challan.findById(id);
+//         if (!challan) {
+//             return res.status(404).json({ message: "Challan not found" });
+//         }
+
+//         if (challan.status === 'paid') {
+//             return res.status(400).json({ message: "Paid challan cannot be updated" });
+//         }
+
+//         // ── Mark this challan as paid + zero out payableAmount ────────────
+//         challan.status = 'paid';
+//         challan.payableAmount = 0;
+//         await challan.save();
+
+//         // ── Delete all OTHER challans & violations of this student ────────
+//         if (challan.studentId) {
+//             // Find all other challans for this student (excluding the paid one)
+//             const otherChallans = await Challan.find({
+//                 studentId: challan.studentId,
+//                 _id: { $ne: challan._id }
+//             });
+
+//             // Delete their evidence images from disk
+//             for (const c of otherChallans) {
+//                 if (c.evidenceImage) {
+//                     try {
+//                         if (fs.existsSync(c.evidenceImage)) {
+//                             fs.unlinkSync(c.evidenceImage);
+//                             console.log(`🗑️ Deleted evidence: ${c.evidenceImage}`);
+//                         }
+//                     } catch (fileErr) {
+//                         console.warn(`Could not delete file: ${c.evidenceImage}`, fileErr.message);
+//                     }
+//                 }
+//             }
+
+//             // Delete all other challan records from DB
+//             const deleteResult = await Challan.deleteMany({
+//                 studentId: challan.studentId,
+//                 _id: { $ne: challan._id }
+//             });
+
+//             console.log(`🧹 Cleared ${deleteResult.deletedCount} old challan(s) for student ${challan.studentId}`);
+//         }
+
+//         return res.status(200).json({
+//             message: "Challan marked as paid. All previous records cleared.",
+//             challan
+//         });
+
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: error.message || "Server error" });
+//     }
+// };
 
 // DELETE /api/challan/:id
 const deleteChallan = async (req, res) => {
