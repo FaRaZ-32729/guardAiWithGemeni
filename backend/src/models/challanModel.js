@@ -66,14 +66,12 @@ const mongoose = require("mongoose");
 
 const challanSchema = new mongoose.Schema(
     {
-        // ✅ Optional for anonymous
         studentId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             default: null
         },
 
-        // ✅ Anonymous person type
         isAnonymous: {
             type: Boolean,
             default: false
@@ -93,6 +91,13 @@ const challanSchema = new mongoose.Schema(
         currentChallan: {
             type: Number,
             min: [0, "Current challan cannot be negative"],
+            default: 0
+        },
+
+        // ✅ Total = currentChallan + previousChallanBalance
+        payableAmount: {
+            type: Number,
+            min: [0, "Payable amount cannot be negative"],
             default: 0
         },
 
@@ -135,6 +140,8 @@ challanSchema.pre("save", async function () {
     if (this.challanDueDate < this.challanIssueDate) {
         throw new Error("Due date cannot be before issue date");
     }
+    // Auto-calculate payableAmount before saving
+    this.payableAmount = (this.currentChallan || 0) + (this.previousChallanBalance || 0);
 });
 
 const challanModel = mongoose.model('challan', challanSchema);

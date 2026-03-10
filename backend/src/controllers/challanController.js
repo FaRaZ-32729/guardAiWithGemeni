@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
+const generateChallanEmail = require('../helper/Emailchallan');
 
 
 const CHALLAN_AMOUNTS = {
@@ -182,7 +183,7 @@ const generateChallan = async (geminiResult, snapshotPath) => {
             .findOne({ studentId: student._id })
             .sort({ createdAt: -1 });
 
-        const previousBalance = lastChallan ? lastChallan.currentChallan : 0;
+        const previousBalance = lastChallan ? lastChallan.payableAmount : 0;
 
         const issueDate = new Date();
         const dueDate = new Date();
@@ -225,111 +226,21 @@ const generateChallan = async (geminiResult, snapshotPath) => {
         try {
             const recipients = [student.email, student.parentsEmail]
 
-            // Send Email with Attachment
+
             await sendEmail(
                 recipients,
-                `Violation Challan Notice - ${student.name}`,
-                `
-        <div style="font-family: Arial, sans-serif; background:#f2f2f2; padding:20px;">
-          <div style="max-width:750px; margin:auto; background:white; padding:20px; border:1px solid #000;">
+                `Violation Fine Challan — ${student.name} | Campus-Guard AI`,
+                generateChallanEmail({
+                    student,
+                    challan,
+                    geminiResult,
+                    previousBalance,
+                    violationAmount,
+                    issueDate,
+                    dueDate,
+                })
+            );
 
-            <!-- Header -->
-            <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px;">
-              <img src="https://iqra.edu.pk/wp-content/uploads/2025/08/LOGO-IU-01-2048x495-1.png"
-                   style="width:200px;" />
-              <h2 style="margin:5px 0;">DISCIPLINARY CHALLAN</h2>
-              <p style="margin:0;">Depositor's Copy</p>
-            </div>
-
-            <br/>
-
-            <!-- Student Info Table -->
-            <table style="width:100%; border-collapse:collapse; font-size:14px;">
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Student Name</b></td>
-                <td style="border:1px solid #000; padding:8px;">${student.name}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Father Name</b></td>
-                <td style="border:1px solid #000; padding:8px;">${student.fatherName || "N/A"}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Phone Number</b></td>
-                <td style="border:1px solid #000; padding:8px;">${student.parentsPhone || "N/A"}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Roll Number</b></td>
-                <td style="border:1px solid #000; padding:8px;">${student.studentRollNumber}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Program</b></td>
-                <td style="border:1px solid #000; padding:8px;">${student.department || "N/A"}</td>
-              </tr>
-            </table>
-
-            <br/>
-
-            <!-- Challan Details -->
-            <table style="width:100%; border-collapse:collapse; font-size:14px;">
-              <tr>
-                <th style="border:1px solid #000; padding:8px;">Description</th>
-                <th style="border:1px solid #000; padding:8px;">Amount (PKR)</th>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;">Previous Challan Balance</td>
-                <td style="border:1px solid #000; padding:8px;">${previousBalance}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;">
-                  Violation (${geminiResult.action.toUpperCase()})
-                </td>
-                <td style="border:1px solid #000; padding:8px;">${violationAmount}</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Total Payable</b></td>
-                <td style="border:1px solid #000; padding:8px; color:red;">
-                  <b>${challan.currentChallan}</b>
-                </td>
-              </tr>
-            </table>
-
-            <br/>
-
-            <!-- Dates -->
-            <table style="width:100%; border-collapse:collapse;">
-              <tr>
-                <td style="border:1px solid #000; padding:8px;"><b>Issue Date:</b> ${issueDate.toDateString()}</td>
-                <td style="border:1px solid #000; padding:8px;"><b>Due Date:</b> ${dueDate.toDateString()}</td>
-              </tr>
-            </table>
-
-            <br/>
-
-            <!-- JazzCash Payment Details -->
-            <div style="border:1px solid #000; padding:10px;">
-              <h3 style="margin-top:0;">Payment Method - JazzCash</h3>
-              <p><b>Account Title:</b> FARAZ Siyal </p>
-              <p><b>JazzCash Number:</b> 03042240997 </p>
-              <p style="color:red; font-size:13px;">
-                Please send payment screenshot to accounts department after transaction.
-              </p>
-            </div>
-
-            <br/>
-
-            <div style="text-align:center; font-size:12px; color:#555;">
-              This is a system generated challan. No signature required.
-            </div>
-
-            <br/>
-
-            <div style="border-top:1px dashed #000; padding-top:10px; text-align:center;">
-              © ${new Date().getFullYear()} Campus Administration | All Rights Reserved
-            </div>
-
-          </div>
-        </div>
-        `);
 
         } catch (emailError) {
             console.error("Email sending failed:", emailError.message);

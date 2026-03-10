@@ -5,8 +5,8 @@ const centralRoute = require("./src/routes/centralRoute");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const path = require("path");
-const { startCameraCaptureService } = require("./src/service/ffmpeg");
-const { loadStudents } = require("./src/service/geminiService");
+const { startCameraCaptureService } = require("./src/helper/ffmpeg");
+const { loadStudents } = require("./src/helper/geminiService");
 
 
 dbConfig();

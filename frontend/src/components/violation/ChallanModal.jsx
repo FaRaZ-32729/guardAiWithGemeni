@@ -22,7 +22,7 @@ function numberToWords(n) {
     return toW(Math.floor(n));
 }
 
-// ── All styles as JS objects — guaranteed in html2canvas + print ──────────
+// style
 const S = {
     slip: {
         display: "flex", flexDirection: "column", background: "#ffffff",
