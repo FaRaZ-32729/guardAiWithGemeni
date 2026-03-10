@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { X, Download, Shield, Printer, Loader2, Bold } from "lucide-react";
+import { X, Download, Shield, Printer, Loader2, CheckCircle2 } from "lucide-react";
+import { api } from "../../config/AxiosInstance";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 const formatDate = (d) => {
@@ -22,7 +23,6 @@ function numberToWords(n) {
     return toW(Math.floor(n));
 }
 
-// style
 const S = {
     slip: {
         display: "flex", flexDirection: "column", background: "#ffffff",
@@ -43,134 +43,102 @@ const S = {
         padding: "10px 8px 8px", borderBottom: "1px solid #d1d5db",
         gap: "4px", textAlign: "center", overflow: "hidden",
     },
-    logoRow: {
-        display: "flex", alignItems: "center", gap: "6px",
-    },
-    logoText: {
-        fontWeight: 900, letterSpacing: "0.15em", textTransform: "uppercase",
-        fontSize: "11px", color: "#111827",
-    },
-    subText: {
-        fontSize: "9px", color: "#6b7280", lineHeight: "1.4",
-    },
+    subText: { fontSize: "9px", color: "#6b7280", lineHeight: "1.4" },
     challanBadge: {
         marginTop: "4px", padding: "2px 8px",
         border: "1px solid #6b7280", fontSize: "8px",
         fontWeight: 700, letterSpacing: "0.1em",
         textTransform: "uppercase", color: "#374151",
-        textAlign: "center", wordBreak: "break-word",
-        maxWidth: "100%",
+        textAlign: "center", wordBreak: "break-word", maxWidth: "100%",
     },
     copyBar: {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "6px 12px", background: "#f3f4f6",
         borderBottom: "1px solid #d1d5db",
     },
-    copyLabel: {
-        fontSize: "9px", fontWeight: 900, textTransform: "uppercase",
-        letterSpacing: "0.15em", color: "#4b5563",
-    },
-    challanNo: {
-        fontSize: "9px", fontWeight: 700, color: "#6b7280",
-        fontFamily: "monospace",
-    },
-    section: {
-        display: "flex", flexDirection: "column",
-        padding: "8px 12px", borderBottom: "1px solid #e5e7eb",
-    },
-    sectionTitle: {
-        fontSize: "8px", fontWeight: 900, textTransform: "uppercase",
-        letterSpacing: "0.15em", color: "#9ca3af", marginBottom: "6px",
-    },
-    row: {
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-        padding: "3px 0", borderBottom: "1px dashed #f3f4f6", gap: "8px",
-    },
-    rowLabel: {
-        fontSize: "9px", color: "#9ca3af", textTransform: "uppercase",
-        letterSpacing: "0.1em", flexShrink: 0, marginRight: "8px",
-    },
-    rowVal: (highlight) => ({
-        fontSize: "10px", fontWeight: 700, textAlign: "right",
-        color: highlight ? "#dc2626" : "#111827",
-        wordBreak: "break-all", overflowWrap: "anywhere",
-    }),
-    feeRow: {
-        display: "flex", justifyContent: "space-between",
-        padding: "3px 0", borderBottom: "1px dashed #d1d5db",
-        fontSize: "10px",
-    },
-    feeTotalRow: {
-        display: "flex", justifyContent: "space-between",
-        padding: "6px 0 2px", fontSize: "11px",
-    },
+    copyLabel: { fontSize: "9px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#4b5563" },
+    challanNo: { fontSize: "9px", fontWeight: 700, color: "#6b7280", fontFamily: "monospace" },
+    section: { display: "flex", flexDirection: "column", padding: "8px 12px", borderBottom: "1px solid #e5e7eb" },
+    sectionTitle: { fontSize: "8px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.15em", color: "#9ca3af", marginBottom: "6px" },
+    row: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "3px 0", borderBottom: "1px dashed #f3f4f6", gap: "8px" },
+    rowLabel: { fontSize: "9px", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em", flexShrink: 0, marginRight: "8px" },
+    rowVal: (highlight) => ({ fontSize: "10px", fontWeight: 700, textAlign: "right", color: highlight ? "#dc2626" : "#111827", wordBreak: "break-all", overflowWrap: "anywhere" }),
+    feeRow: { display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px dashed #d1d5db", fontSize: "10px" },
+    feeTotalRow: { display: "flex", justifyContent: "space-between", padding: "6px 0 2px", fontSize: "11px" },
     spacer: { flex: 1 },
-    sigRow: {
-        display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-        padding: "8px 12px", borderTop: "1px solid #d1d5db",
-    },
+    sigRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "8px 12px", borderTop: "1px solid #d1d5db" },
     sigBox: { display: "flex", flexDirection: "column", gap: "4px" },
     sigLine: { width: "96px", borderTop: "1px solid #9ca3af", marginTop: "24px" },
-    sigText: {
-        fontSize: "8px", color: "#9ca3af", textTransform: "uppercase",
-        letterSpacing: "0.1em",
-    },
-    stampWrap: {
-        display: "flex", justifyContent: "center", paddingBottom: "8px",
-    },
+    sigText: { fontSize: "8px", color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em" },
+    stampWrap: { display: "flex", justifyContent: "center", paddingBottom: "8px" },
     stamp: {
         width: "52px", height: "52px", borderRadius: "50%",
         border: "1px dashed #d1d5db", display: "flex",
         alignItems: "center", justifyContent: "center",
         fontSize: "7px", color: "#d1d5db", textAlign: "center",
-        lineHeight: "1.3", textTransform: "uppercase", letterSpacing: "0.05em",
-        padding: "4px",
+        lineHeight: "1.3", textTransform: "uppercase", letterSpacing: "0.05em", padding: "4px",
     },
-    footer: {
-        padding: "6px 12px", background: "#f9fafb",
-        borderTop: "1px solid #e5e7eb", textAlign: "center",
-    },
-    footerText: { fontSize: "8px", color: "#9ca3af", lineHeight: "1.5" },
+    footer: { padding: "6px 12px", background: "#f9fafb", borderTop: "1px solid #e5e7eb", textAlign: "center" },
 };
 
-// ── Single slip (fully inline styled) ────────────────────────────────────
+// ── Single slip ───────────────────────────────────────────────────────────
 function ChallanSlip({ v, copyLabel }) {
     const student = v.studentId || {};
     const isAnon = v.isAnonymous;
     const prev = v.previousChallanBalance || 0;
     const curr = v.currentChallan || 0;
-    const total = prev + curr;
-    const challanNo = v._id?.slice(-8).toUpperCase();
-
-    console.log(student)
+    const total = v.payableAmount || (prev + curr);
+    // Use challanId from DB, fall back to last 8 of _id
+    const challanNo = v.challanId || v._id?.slice(-8).toUpperCase();
 
     return (
-        <div style={S.slip}>
+        <div style={{ ...S.slip, position: "relative" }}>
+            {/* ── PAID stamp overlay ── */}
+            {v.status === "paid" && (
+                <div style={{
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 10,
+                    pointerEvents: "none",
+                    overflow: "hidden",
+                }}>
+                    <div style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%) rotate(-30deg)",
+                        border: "5px solid rgba(16,185,129,0.75)",
+                        borderRadius: "8px",
+                        padding: "8px 20px",
+                        color: "rgba(16,185,129,0.75)",
+                        fontSize: "44px",
+                        fontWeight: 900,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        fontFamily: "'Courier New', monospace",
+                        lineHeight: 1,
+                        userSelect: "none",
+                        whiteSpace: "nowrap",
+                    }}>
+                        PAID
+                    </div>
+                </div>
+            )}
             <div style={S.accentTop} />
 
             {/* Header */}
             <div style={S.header}>
-                {/* University logo */}
-                <img
-                    src="/logo.png"
-                    alt="ILMA University"
-                    crossOrigin="anonymous"
-                    style={{ height: "38px", objectFit: "contain", maxWidth: "100%", marginBottom: "4px" }}
-                />
-                <p style={S.subText}>
-                    Disciplinary Committee · Campus Security Division
-                </p>
-                {/* Pay order info */}
+                <img src="/logo.png" alt="ILMA University" crossOrigin="anonymous"
+                    style={{ height: "38px", objectFit: "contain", maxWidth: "100%", marginBottom: "4px" }} />
+                <p style={S.subText}>Disciplinary Committee · Campus Security Division</p>
                 <div style={{ fontSize: "8px", color: "#374151", marginTop: "2px", textAlign: "center", lineHeight: "1.5" }}>
-                    <span style={{ fontWeight: 600 }}>Pay Order in favor of: <span style={{ fontWeight: 900, color: "#111827" }} >
-                        ILMA UNIVERSITY
-                    </span></span >
-                    &nbsp;·&nbsp;<span style={{ fontWeight: 600 }}>NTN: <span style={{ fontWeight: 900, color: "#111827" }} >#2840979-9</span></span>
+                    <span style={{ fontWeight: 600 }}>Pay Order in favor of: <span style={{ fontWeight: 900, color: "#111827" }}>ILMA UNIVERSITY</span></span>
+                    &nbsp;·&nbsp;<span style={{ fontWeight: 600 }}>NTN: <span style={{ fontWeight: 900, color: "#111827" }}>#2840979-9</span></span>
                 </div>
                 <div style={S.challanBadge}>Violation Fine Challan</div>
             </div>
 
-            {/* Copy label */}
+            {/* Copy label + Challan ID */}
             <div style={S.copyBar}>
                 <span style={S.copyLabel}>[{copyLabel}]</span>
                 <span style={S.challanNo}>#{challanNo}</span>
@@ -222,14 +190,6 @@ function ChallanSlip({ v, copyLabel }) {
                 </div>
             )}
 
-            {/* AI note */}
-            {/* {v.description && (
-                <div style={S.section}>
-                    <p style={S.sectionTitle}>AI Note</p>
-                    <p style={{ fontSize: "9px", color: "#4b5563", lineHeight: "1.5" }}>{v.description}</p>
-                </div>
-            )} */}
-
             <div style={S.spacer} />
 
             {/* Signatures */}
@@ -251,7 +211,6 @@ function ChallanSlip({ v, copyLabel }) {
 
             {/* Footer */}
             <div style={S.footer}>
-
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", marginBottom: "3px" }}>
                     Powered by:
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -277,7 +236,6 @@ function DataRow({ label, val, highlight }) {
     );
 }
 
-// ── Build print HTML with all inline styles baked in ─────────────────────
 function buildPrintHTML(challanRef) {
     const node = challanRef.current.cloneNode(true);
     return `<!DOCTYPE html>
@@ -297,25 +255,41 @@ function buildPrintHTML(challanRef) {
 }
 
 // ── Main Modal ────────────────────────────────────────────────────────────
-export default function ChallanModal({ v, onClose }) {
+export default function ChallanModal({ v, onClose, onStatusChange }) {
     const challanRef = useRef(null);
     const [dlLoading, setDlLoading] = useState(false);
     const [printLoading, setPrintLoading] = useState(false);
+    const [statusLoading, setStatusLoading] = useState(false);
+    const [currentStatus, setCurrentStatus] = useState(v.status);
+
+    const isPaid = currentStatus === "paid";
+
+    const handleMarkPaid = async () => {
+        if (isPaid) return;
+        setStatusLoading(true);
+        try {
+            const res = await api.put(`/challan/update/${v._id}/status`, { status: "paid" });
+            setCurrentStatus("paid");
+            onStatusChange?.(v._id, "paid"); // update parent list
+            console.log("✅ Challan marked as paid:", res.data.message);
+        } catch (err) {
+            console.error("Status update failed:", err.response?.data?.message || err.message);
+            alert(err.response?.data?.message || "Failed to update status");
+        } finally {
+            setStatusLoading(false);
+        }
+    };
 
     const handleDownload = async () => {
         setDlLoading(true);
         try {
             const { default: html2canvas } = await import("html2canvas");
             const canvas = await html2canvas(challanRef.current, {
-                scale: 2.5,
-                backgroundColor: "#ffffff",
-                useCORS: true,
-                allowTaint: false,
-                logging: false,
-                imageTimeout: 15000,
+                scale: 2.5, backgroundColor: "#ffffff",
+                useCORS: true, allowTaint: false, logging: false, imageTimeout: 15000,
             });
             const link = document.createElement("a");
-            link.download = `challan-${v._id?.slice(-8).toUpperCase()}.png`;
+            link.download = `challan-${v.challanId || v._id?.slice(-8).toUpperCase()}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         } finally {
@@ -329,31 +303,48 @@ export default function ChallanModal({ v, onClose }) {
         win.document.write(buildPrintHTML(challanRef));
         win.document.close();
         win.focus();
-        setTimeout(() => {
-            win.print();
-            win.close();
-            setPrintLoading(false);
-        }, 600);
+        setTimeout(() => { win.print(); win.close(); setPrintLoading(false); }, 600);
     };
 
     return (
-        /* Full-screen overlay with scroll */
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.82)", backdropFilter: "blur(4px)", overflowY: "auto", padding: "16px" }}>
             <div style={{ maxWidth: "960px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "12px", minHeight: "100%" }}>
 
                 {/* Toolbar */}
                 <div className="flex items-center justify-between px-4 py-3 rounded-2xl"
                     style={{ background: "#0d0f16", border: "1px solid #1e2535", flexShrink: 0 }}>
+
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl" style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)" }}>
                             <Shield size={15} className="text-cyan-400" />
                         </div>
                         <div>
                             <p className="text-white text-sm font-bold tracking-wide">Violation Fine Challan</p>
+                            <p className="text-slate-500 text-[10px]">
+                                #{v.challanId || v._id?.slice(-8).toUpperCase()}
+                            </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
+
+                        {/* ── Status toggle button ── */}
+                        <button
+                            onClick={handleMarkPaid}
+                            disabled={isPaid || statusLoading}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+                            style={{
+                                background: isPaid ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
+                                border: `1px solid ${isPaid ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
+                                color: isPaid ? "#34d399" : "#f87171",
+                                opacity: isPaid ? 0.7 : 1,
+                            }}>
+                            {statusLoading
+                                ? <Loader2 size={13} className="animate-spin" />
+                                : <CheckCircle2 size={13} />}
+                            {statusLoading ? "Updating..." : isPaid ? "Paid" : "Mark as Paid"}
+                        </button>
+
                         <button onClick={handleDownload} disabled={dlLoading}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50"
                             style={{ background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", color: "#22d3ee" }}>
@@ -368,30 +359,26 @@ export default function ChallanModal({ v, onClose }) {
                             Print
                         </button>
 
-                        <button onClick={onClose}
-                            className="p-2 rounded-xl transition-all"
+                        <button onClick={onClose} className="p-2 rounded-xl transition-all"
                             style={{ border: "1px solid #1e2535", color: "#64748b" }}>
                             <X size={15} />
                         </button>
                     </div>
                 </div>
 
-                {/* Three-copy challan — fully inline styled for capture */}
+                {/* Three-copy challan */}
                 <div ref={challanRef}
                     style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: "#ffffff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }}>
 
-                    {/* Office copy */}
-                    <ChallanSlip v={v} copyLabel="Office Copy" />
+                    <ChallanSlip v={{ ...v, status: currentStatus }} copyLabel="Office Copy" />
 
-                    {/* Student copy with scissor dividers */}
                     <div style={{ position: "relative", borderLeft: "2px dashed #9ca3af", borderRight: "2px dashed #9ca3af" }}>
-                        <ChallanSlip v={v} copyLabel="Student Copy" />
+                        <ChallanSlip v={{ ...v, status: currentStatus }} copyLabel="Student Copy" />
                         <span style={{ position: "absolute", top: "6px", left: "50%", transform: "translateX(-50%)", fontSize: "12px", color: "#d1d5db" }}>✂</span>
                         <span style={{ position: "absolute", bottom: "6px", left: "50%", transform: "translateX(-50%)", fontSize: "12px", color: "#d1d5db" }}>✂</span>
                     </div>
 
-                    {/* Bank copy */}
-                    <ChallanSlip v={v} copyLabel="Bank Copy" />
+                    <ChallanSlip v={{ ...v, status: currentStatus }} copyLabel="Bank Copy" />
                 </div>
 
             </div>

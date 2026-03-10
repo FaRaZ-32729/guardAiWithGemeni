@@ -13,119 +13,136 @@ const CHALLAN_AMOUNTS = {
     fighting: process.env.FIGHTING
 };
 
-// const generateChallan = async (geminiResult) => {
-//     console.log(`gemeni result in generate challan ${geminiResult}`)
+// const generateChallan = async (geminiResult, snapshotPath) => {
+//     console.log(`gemini result in generate challan`, geminiResult);
+
 //     try {
 
 //         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
 //             if (['smoking', 'fighting'].includes(geminiResult.action)) {
-//                 const record = new AnonymousViolation({
+
+//                 const violationsDir = path.join(__dirname, "../../violations");
+//                 if (!fs.existsSync(violationsDir)) {
+//                     fs.mkdirSync(violationsDir, { recursive: true });
+//                 }
+
+//                 const filename = `violation_anonymous_${Date.now()}.jpg`;
+//                 const violationImagePath = path.join(violationsDir, filename);
+//                 fs.copyFileSync(snapshotPath, violationImagePath);
+
+//                 const issueDate = new Date();
+//                 const dueDate = new Date();
+//                 dueDate.setDate(dueDate.getDate() + 7);
+
+//                 const challan = new Challan({
+//                     isAnonymous: true,
 //                     name: "Anonymous",
-//                     action: geminiResult.action,
-//                     confidence: geminiResult.confidence,
-//                     description: geminiResult.description
+//                     previousChallanBalance: 0,
+//                     currentChallan: 0,
+//                     challanIssueDate: issueDate,
+//                     challanDueDate: dueDate,
+//                     violationType: geminiResult.action,
+//                     evidenceImage: violationImagePath,
+//                     description: geminiResult.description,
+//                     status: 'unpaid'
 //                 });
-//                 await record.save();
-//                 console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
+
+//                 await challan.save();
+//                 console.log(`⚠️ Anonymous challan saved | Action: ${geminiResult.action}`);
 //             }
 //             return;
 //         }
 
-//         // Only generate for smoking or fighting
 //         if (!['smoking', 'fighting'].includes(geminiResult.action)) return;
 
-//         // Only for matched (known) students
-//         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
-//             console.log("Anonymous person detected with violation → cannot generate challan");
-//             return;
-//         }
-
-//         // Find student by rollNo
+//         // Find student
 //         const student = await User.findOne({ studentRollNumber: geminiResult.rollNo });
+
 //         if (!student) {
 //             console.warn(`Student not found in DB for rollNo: ${geminiResult.rollNo}`);
 //             return;
 //         }
 
-//         // Get last unpaid challan balance
-//         const lastChallan = await Challan.findOne({ studentId: student._id }).sort({ createdAt: -1 });
-//         const previousBalance = lastChallan ? lastChallan.currentChallan : 0;
+//         // ── 24-hour cooldown check ────────────────────────────────────────
+//         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+//         const recentChallan = await Challan.findOne({
+//             studentId: student._id,
+//             createdAt: { $gte: twentyFourHoursAgo }
+//         });
 
-//         // Dates
+//         if (recentChallan) {
+//             const nextAllowed = new Date(recentChallan.createdAt.getTime() + 24 * 60 * 60 * 1000);
+//             const minutesLeft = Math.ceil((nextAllowed - Date.now()) / 60000);
+//             console.log(`⏳ Cooldown active for ${student.name} — next challan in ${minutesLeft} min`);
+//             return;
+//         }
+//         // ─────────────────────────────────────────────────────────────────
+
+//         // Get previous balance
+//         const lastChallan = await Challan
+//             .findOne({ studentId: student._id })
+//             .sort({ createdAt: -1 });
+
+//         const previousBalance = lastChallan ? lastChallan.payableAmount : 0;
+
 //         const issueDate = new Date();
 //         const dueDate = new Date();
-//         dueDate.setDate(dueDate.getDate() + 7); // 7 days to pay
+//         dueDate.setDate(dueDate.getDate() + process.env.DUEDATE);
 
+//         const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
 
-//         // Create challan
-//         const challan = new Challan({
-//             studentId: student._id,
-//             previousChallanBalance: previousBalance,
-//             currentChallan: previousBalance + CHALLAN_AMOUNTS[geminiResult.action],
-//             challanIssueDate: issueDate,
-//             challanDueDate: dueDate,
-//             status: 'unpaid'
-//         });
-
-//         console.log("generated challan ", challan);
-
-//         await challan.save();
-
-//         console.log(` Challan generated for ${geminiResult.name} | Action: ${geminiResult.action} | Amount: ${CHALLAN_AMOUNTS[geminiResult.action]}`);
-
-//     } catch (error) {
-//         console.error(" Challan Generation Error:", error.message);
-//     }
-// };
-
-
-// GET /api/challan/:id
-
-
-
-// If not matched → save anonymous violation
-// if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
-//     if (['smoking', 'fighting'].includes(geminiResult.action)) {
-//         const record = new AnonymousViolation({
-//             name: "Anonymous",
-//             action: geminiResult.action,
-//             confidence: geminiResult.confidence,
-//             description: geminiResult.description
-//         });
-//         await record.save();
-//         console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
-//     }
-//     return;
-// }
-
-// If not matched → save anonymous violation
-// if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
-//     if (['smoking', 'fighting'].includes(geminiResult.action)) {
-
-//         // Save anonymous violation image
 //         const violationsDir = path.join(__dirname, "../../violations");
 //         if (!fs.existsSync(violationsDir)) {
 //             fs.mkdirSync(violationsDir, { recursive: true });
+//             console.log("new folder created");
 //         }
 
-//         const filename = `violation_anonymous_${Date.now()}.jpg`;
+//         const filename = `violation_${student.studentRollNumber}_${Date.now()}.jpg`;
+//         console.log(filename);
 //         const violationImagePath = path.join(violationsDir, filename);
 //         fs.copyFileSync(snapshotPath, violationImagePath);
-//         console.log(`📸 Anonymous violation image saved: ${filename}`);
 
-//         const record = new AnonymousViolation({
-//             name: "Anonymous",
-//             action: geminiResult.action,
-//             confidence: geminiResult.confidence,
-//             description: geminiResult.description,
-//             evidenceImage: violationImagePath  
+//         const challan = new Challan({
+//             studentId: student._id,
+//             previousChallanBalance: previousBalance,
+//             currentChallan: violationAmount,
+//             challanIssueDate: issueDate,
+//             challanDueDate: dueDate,
+//             violationType: geminiResult.action,
+//             status: 'unpaid',
+//             evidenceImage: violationImagePath,
+//             description: geminiResult.description
 //         });
-//         await record.save();
-//         console.log(`⚠️ Anonymous violation saved | Action: ${geminiResult.action}`);
-//     }
-//     return;
-// }
 
+//         await challan.save();
+//         console.log(`Challan generated for ${student.name} | Action: ${geminiResult.action}`);
+
+//         try {
+//             const recipients = [student.email, student.parentsEmail];
+
+//             await sendEmail(
+//                 recipients,
+//                 `Violation Fine Challan — ${student.name} | Campus-Guard AI`,
+//                 generateChallanEmail({
+//                     student,
+//                     challan,
+//                     geminiResult,
+//                     previousBalance,
+//                     violationAmount,
+//                     issueDate,
+//                     dueDate,
+//                 })
+//             );
+
+//             console.log("📧 Challan email sent to student and parent.");
+//         } catch (emailError) {
+//             console.error("Email sending failed:", emailError.message);
+//         }
+
+//     } catch (error) {
+//         console.error("Challan Generation Error:", error.message);
+//     }
+// };
 
 const generateChallan = async (geminiResult, snapshotPath) => {
     console.log(`gemini result in generate challan`, geminiResult);
@@ -148,7 +165,6 @@ const generateChallan = async (geminiResult, snapshotPath) => {
                 const dueDate = new Date();
                 dueDate.setDate(dueDate.getDate() + 7);
 
-                // ✅ Save in same Challan model
                 const challan = new Challan({
                     isAnonymous: true,
                     name: "Anonymous",
@@ -178,9 +194,33 @@ const generateChallan = async (geminiResult, snapshotPath) => {
             return;
         }
 
+        // ── 5-minute cooldown: skip if any violation saved in last 5 mins ─
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentViolation = await Challan.findOne({
+            studentId: student._id,
+            createdAt: { $gte: fiveMinutesAgo }
+        });
+
+        if (recentViolation) {
+            const nextAllowed = new Date(recentViolation.createdAt.getTime() + 5 * 60 * 1000);
+            const secondsLeft = Math.ceil((nextAllowed - Date.now()) / 1000);
+            console.log(`⏳ Violation cooldown for ${student.name} — next in ${secondsLeft}s`);
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
+        // ── Check 24-hour challan cooldown ───────────────────────────────
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const challanAlreadyGenerated = await Challan.findOne({
+            studentId: student._id,
+            isChallanGenerated: true,
+            createdAt: { $gte: twentyFourHoursAgo }
+        });
+        // ─────────────────────────────────────────────────────────────────
+
         // Get previous balance
         const lastChallan = await Challan
-            .findOne({ studentId: student._id })
+            .findOne({ studentId: student._id, isChallanGenerated: true })
             .sort({ createdAt: -1 });
 
         const previousBalance = lastChallan ? lastChallan.payableAmount : 0;
@@ -191,23 +231,44 @@ const generateChallan = async (geminiResult, snapshotPath) => {
 
         const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
 
-        // save evidance evidence
         const violationsDir = path.join(__dirname, "../../violations");
-
         if (!fs.existsSync(violationsDir)) {
             fs.mkdirSync(violationsDir, { recursive: true });
-            console.log("new folder created")
+            console.log("new folder created");
         }
 
         const filename = `violation_${student.studentRollNumber}_${Date.now()}.jpg`;
-        console.log(filename)
+        console.log(filename);
         const violationImagePath = path.join(violationsDir, filename);
-
-        // copy frame as evidence
         fs.copyFileSync(snapshotPath, violationImagePath);
+
+        if (challanAlreadyGenerated) {
+            // ── Within 24hrs: save violation record only, no fine, no email ──
+            const violationOnly = new Challan({
+                studentId: student._id,
+                isChallanGenerated: false,
+                previousChallanBalance: 0,
+                currentChallan: 0,
+                payableAmount: 0,
+                challanIssueDate: issueDate,
+                challanDueDate: dueDate,
+                violationType: geminiResult.action,
+                status: null,
+                evidenceImage: violationImagePath,
+                description: geminiResult.description
+            });
+            await violationOnly.save();
+            console.log(`📋 Violation recorded (no challan — 24hr cooldown active) for ${student.name}`);
+            return;
+        }
+
+        // ── Outside 24hrs: generate full challan + send email ─────────────
+        const challanId = Math.floor(10000000 + Math.random() * 90000000).toString();
 
         const challan = new Challan({
             studentId: student._id,
+            challanId,
+            isChallanGenerated: true,
             previousChallanBalance: previousBalance,
             currentChallan: violationAmount,
             challanIssueDate: issueDate,
@@ -218,14 +279,11 @@ const generateChallan = async (geminiResult, snapshotPath) => {
             description: geminiResult.description
         });
 
-
         await challan.save();
-
         console.log(`Challan generated for ${student.name} | Action: ${geminiResult.action}`);
 
         try {
-            const recipients = [student.email, student.parentsEmail]
-
+            const recipients = [student.email, student.parentsEmail];
 
             await sendEmail(
                 recipients,
@@ -241,13 +299,10 @@ const generateChallan = async (geminiResult, snapshotPath) => {
                 })
             );
 
-
+            console.log("📧 Challan email sent to student and parent.");
         } catch (emailError) {
             console.error("Email sending failed:", emailError.message);
         }
-
-
-        console.log("📧 Challan email sent to student and parent.");
 
     } catch (error) {
         console.error("Challan Generation Error:", error.message);
@@ -353,8 +408,8 @@ const updateChallanStatus = async (req, res) => {
             return res.status(400).json({ message: "Status is required" });
         }
 
-        if (!['unpaid', 'paid', 'overdue'].includes(status)) {
-            return res.status(400).json({ message: "Invalid status. Use: unpaid, paid, overdue" });
+        if (!['unpaid', 'paid'].includes(status)) {
+            return res.status(400).json({ message: "Invalid status. Use: unpaid, paid" });
         }
 
         const challan = await Challan.findById(id);
@@ -366,10 +421,46 @@ const updateChallanStatus = async (req, res) => {
             return res.status(400).json({ message: "Paid challan cannot be updated" });
         }
 
-        challan.status = status;
+        // ── Mark this challan as paid + zero out payableAmount ────────────
+        challan.status = 'paid';
+        challan.payableAmount = 0;
         await challan.save();
 
-        return res.status(200).json({ message: "Challan status updated", challan });
+        // ── Delete all OTHER challans & violations of this student ────────
+        if (challan.studentId) {
+            // Find all other challans for this student (excluding the paid one)
+            const otherChallans = await Challan.find({
+                studentId: challan.studentId,
+                _id: { $ne: challan._id }
+            });
+
+            // Delete their evidence images from disk
+            for (const c of otherChallans) {
+                if (c.evidenceImage) {
+                    try {
+                        if (fs.existsSync(c.evidenceImage)) {
+                            fs.unlinkSync(c.evidenceImage);
+                            console.log(`🗑️ Deleted evidence: ${c.evidenceImage}`);
+                        }
+                    } catch (fileErr) {
+                        console.warn(`Could not delete file: ${c.evidenceImage}`, fileErr.message);
+                    }
+                }
+            }
+
+            // Delete all other challan records from DB
+            const deleteResult = await Challan.deleteMany({
+                studentId: challan.studentId,
+                _id: { $ne: challan._id }
+            });
+
+            console.log(`🧹 Cleared ${deleteResult.deletedCount} old challan(s) for student ${challan.studentId}`);
+        }
+
+        return res.status(200).json({
+            message: "Challan marked as paid. All previous records cleared.",
+            challan
+        });
 
     } catch (error) {
         console.error(error);

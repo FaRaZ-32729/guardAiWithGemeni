@@ -254,7 +254,7 @@ export default function Violations() {
 
                             {/* ── Right: status + challan button ── */}
                             <div className="flex sm:flex-col items-center sm:items-end gap-2 flex-wrap shrink-0">
-                                {!isAnon && (
+                                {v.isChallanGenerated ? (
                                     <>
                                         <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${statusConfig[v.status]?.cls || statusConfig.null.cls}`}>
                                             {statusConfig[v.status]?.label || "N/A"}
@@ -265,6 +265,10 @@ export default function Violations() {
                                             <FileText size={12} /> View Challan
                                         </button>
                                     </>
+                                ) : (
+                                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                        Violation Only
+                                    </span>
                                 )}
                             </div>
                         </div>
@@ -273,7 +277,14 @@ export default function Violations() {
             </div>
 
             {selectedChallan && (
-                <ChallanModal v={selectedChallan} onClose={() => setSelectedChallan(null)} />
+                <ChallanModal
+                    v={selectedChallan}
+                    onClose={() => setSelectedChallan(null)}
+                    onStatusChange={(id, status) => {
+                        // update challans list in context or local state
+                        getAllChallans();
+                    }}
+                />
             )}
         </div>
     );

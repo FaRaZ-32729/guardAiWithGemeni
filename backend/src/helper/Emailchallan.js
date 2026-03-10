@@ -1,7 +1,7 @@
 // ── helpers/emailChallan.js ───────────────────────────────────────────────
 
 function emailRow(label, val, highlight = false) {
-    return `
+  return `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:3px 0;border-bottom:1px dashed #f3f4f6;gap:8px;">
       <span style="font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;padding-right:10px">${label}</span>
       <span style="font-size:10px;font-weight:700;text-align:right;color:${highlight ? "#dc2626" : "#111827"};word-break:break-all;">${val}</span>
@@ -9,18 +9,18 @@ function emailRow(label, val, highlight = false) {
 }
 
 function numberToWordsEmail(n) {
-    if (!n || n === 0) return "Zero";
-    const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-    const toW = (x) => {
-        if (x === 0) return "";
-        if (x < 20) return ones[x];
-        if (x < 100) return tens[Math.floor(x / 10)] + (x % 10 ? " " + ones[x % 10] : "");
-        if (x < 1000) return ones[Math.floor(x / 100)] + " Hundred" + (x % 100 ? " " + toW(x % 100) : "");
-        if (x < 100000) return toW(Math.floor(x / 1000)) + " Thousand" + (x % 1000 ? " " + toW(x % 1000) : "");
-        return toW(Math.floor(x / 100000)) + " Lakh" + (x % 100000 ? " " + toW(x % 100000) : "");
-    };
-    return toW(Math.floor(n));
+  if (!n || n === 0) return "Zero";
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const toW = (x) => {
+    if (x === 0) return "";
+    if (x < 20) return ones[x];
+    if (x < 100) return tens[Math.floor(x / 10)] + (x % 10 ? " " + ones[x % 10] : "");
+    if (x < 1000) return ones[Math.floor(x / 100)] + " Hundred" + (x % 100 ? " " + toW(x % 100) : "");
+    if (x < 100000) return toW(Math.floor(x / 1000)) + " Thousand" + (x % 1000 ? " " + toW(x % 1000) : "");
+    return toW(Math.floor(x / 100000)) + " Lakh" + (x % 100000 ? " " + toW(x % 100000) : "");
+  };
+  return toW(Math.floor(n));
 }
 
 /**
@@ -37,24 +37,24 @@ function numberToWordsEmail(n) {
  * @returns {string} HTML string ready to pass to sendEmail()
  */
 const generateChallanEmail = ({
-    student,
-    challan,
-    geminiResult,
-    previousBalance,
-    violationAmount,
-    issueDate,
-    dueDate,
+  student,
+  challan,
+  geminiResult,
+  previousBalance,
+  violationAmount,
+  issueDate,
+  dueDate,
 }) => {
 
-    const challanNo = challan._id?.toString().slice(-8).toUpperCase();
-    const issueDateStr = issueDate instanceof Date
-        ? issueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
-        : issueDate;
-    const dueDateStr = dueDate instanceof Date
-        ? dueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
-        : dueDate;
+  const challanNo = challan.challanId;  
+  const issueDateStr = issueDate instanceof Date
+    ? issueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : issueDate;
+  const dueDateStr = dueDate instanceof Date
+    ? dueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : dueDate;
 
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>

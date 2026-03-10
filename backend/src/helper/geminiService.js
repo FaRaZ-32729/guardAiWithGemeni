@@ -14,10 +14,11 @@ const loadStudents = async () => {
 };
 
 const processWithGemini = async (cameraFramePath, camera) => {
+    let snapshotPath = null;
     try {
         console.log("🚀 Sending frame to Gemini...");
 
-        const snapshotPath = cameraFramePath.replace('.jpg', `_snapshot_${Date.now()}.jpg`);
+         snapshotPath = cameraFramePath.replace('.jpg', `_snapshot_${Date.now()}.jpg`);
         fs.copyFileSync(cameraFramePath, snapshotPath);
 
         const students = cachedStudents;
