@@ -9,13 +9,11 @@ if (!fs.existsSync(uploadPath)) {
     fs.mkdirSync(uploadPath, { recursive: true });
 }
 
-// Storage config
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        // Use studentRollNumber as filename + original extension
         const rollNumber = req.body.studentRollNumber;
         if (!rollNumber) {
             return cb(new Error("Student Roll Number is required"));
@@ -24,7 +22,6 @@ const storage = multer.diskStorage({
     }
 });
 
-// File filter (only images allowed)
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (allowedTypes.includes(file.mimetype)) {

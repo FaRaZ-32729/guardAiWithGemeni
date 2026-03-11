@@ -10,7 +10,6 @@ import { ChallanProvider } from './context/ChallanContext .jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-
     <BrowserRouter>
       <AuthProvider>
         <StudentProvider>
@@ -22,6 +21,5 @@ createRoot(document.getElementById('root')).render(
         </StudentProvider>
       </AuthProvider>
     </BrowserRouter>
-
-  </StrictMode>,
+  </StrictMode>
 )

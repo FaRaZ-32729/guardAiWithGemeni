@@ -57,19 +57,17 @@ const login = async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        // Generate JWT
         const token = jwt.sign(
             { _id: admin._id },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        // Save token in HTTP-only cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false, // true in production (HTTPS)
+            secure: false,
             sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000 
         });
 
         return res.status(200).json({

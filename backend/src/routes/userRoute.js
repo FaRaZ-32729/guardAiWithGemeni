@@ -1,7 +1,6 @@
 const express = require("express");
 const { registerStudent, getAllStudents, getSingleStudent, updateStudent, deleteStudent } = require("../controllers/userController");
 const upload = require("../middleware/uploadMiddleware");
-const multer = require("multer");
 
 const router = express.Router();
 

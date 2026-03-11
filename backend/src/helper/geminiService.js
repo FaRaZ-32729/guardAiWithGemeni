@@ -10,13 +10,13 @@ let cachedStudents = [];
 
 const loadStudents = async () => {
     cachedStudents = await Student.find({});
-    console.log("📚 Students cached in memory", cachedStudents.length, "students loaded");
+    console.log("Students cached in memory", cachedStudents.length, "students loaded");
 };
 
 const processWithGemini = async (cameraFramePath, camera) => {
     let snapshotPath = null;
     try {
-        console.log("🚀 Sending frame to Gemini...");
+        console.log("Sending frame to Gemini...");
 
          snapshotPath = cameraFramePath.replace('.jpg', `_snapshot_${Date.now()}.jpg`);
         fs.copyFileSync(cameraFramePath, snapshotPath);
@@ -77,14 +77,14 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         // Prepare multimodal content
         const parts = [
             { text: promptText },
-            { text: "📷 CAMERA FRAME (analyze this image for faces and actions):" },
+            { text: "CAMERA FRAME (analyze this image for faces and actions):" },
             {
                 inlineData: {
                     mimeType: "image/jpeg",
                     data: cameraBase64
                 }
             },
-            { text: "👥 REGISTERED STUDENTS (compare faces against the camera frame):" }
+            { text: "REGISTERED STUDENTS (compare faces against the camera frame):" }
         ];
 
         // Add all student images
@@ -94,10 +94,10 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
                 // const studentBase64 = fs.readFileSync(studentImagePath, { encoding: "base64" });
                 const studentBase64 = await compressImageToBase64(studentImagePath);
 
-                console.log(`✅ Loaded student image: ${student.name}, RollNo: ${student.studentRollNumber}, Size: ${studentBase64.length} bytes`);
+                console.log(`Loaded student image: ${student.name}, RollNo: ${student.studentRollNumber}, Size: ${studentBase64.length} bytes`);
 
                 parts.push(
-                    { text: `🎓 Student Name: ${student.name} | RollNo: ${student.studentRollNumber}` },
+                    { text: `Student Name: ${student.name} | RollNo: ${student.studentRollNumber}` },
                     {
                         inlineData: {
                             mimeType: "image/jpeg",
@@ -106,13 +106,13 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
                     }
                 );
             } else {
-                console.warn(`⚠️ Student image NOT found: ${student.name}, RollNo: ${student.studentRollNumber}`);
+                console.warn(`Student image NOT found: ${student.name}, RollNo: ${student.studentRollNumber}`);
             }
         }
 
         // Final instruction
         parts.push({
-            text: `🔍 Now analyze the camera frame, match faces against the registered students above, detect actions, and return ONLY the JSON array as instructed.`
+            text: ` Now analyze the camera frame, match faces against the registered students above, detect actions, and return ONLY the JSON array as instructed.`
         });
 
         // Call Gemini
@@ -121,7 +121,7 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
             {
                 contents: [{ parts }],
                 generationConfig: {
-                    temperature: 0.1,        // Low temperature = more deterministic, less creative guessing
+                    temperature: 0.1,
                     topP: 0.8,
                     maxOutputTokens: 2048
                 }
@@ -129,7 +129,7 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         );
 
         const text = response.data.candidates[0].content.parts[0].text;
-        console.log("🎯 Raw Gemini Response:", text);
+        console.log("Raw Gemini Response:", text);
 
         // Parse JSON safely
         let parsed;
@@ -139,16 +139,16 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
 
             // Validate it's an array
             if (!Array.isArray(parsed)) {
-                parsed = [parsed]; // wrap if single object returned
+                parsed = [parsed]; 
             }
 
         } catch (err) {
-            console.error("❌ Invalid JSON from Gemini:", err.message);
+            console.error("Invalid JSON from Gemini:", err.message);
             return null;
         }
 
-        console.log("✅ Parsed Gemini JSON:", parsed);
-        // Generate challan for each violation detected
+        console.log("Parsed Gemini JSON:", parsed);
+
         for (const result of parsed) {
             console.log("result send")
             // await generateChallan(result, cameraFramePath);
@@ -156,7 +156,7 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
         }
         if (fs.existsSync(snapshotPath)) {
             fs.unlinkSync(snapshotPath);
-            console.log("🗑️ Snapshot deleted:", snapshotPath);
+            console.log("Snapshot deleted:", snapshotPath);
         }
 
         return parsed;
@@ -165,13 +165,13 @@ Return ONLY a valid JSON array. No explanation, no markdown, no extra text.
 
         if (snapshotPath && fs.existsSync(snapshotPath)) {
             fs.unlinkSync(snapshotPath);
-            console.log("🗑️ Snapshot deleted on error:", snapshotPath);
+            console.log("Snapshot deleted on error:", snapshotPath);
         }
 
         if (error.response) {
-            console.error("❌ Gemini API Error:", JSON.stringify(error.response.data, null, 2));
+            console.error("Gemini API Error:", JSON.stringify(error.response.data, null, 2));
         } else {
-            console.error("❌ Gemini API Error:", error.message);
+            console.error("Gemini API Error:", error.message);
         }
         return null;
     }

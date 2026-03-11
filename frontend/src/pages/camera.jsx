@@ -7,6 +7,7 @@ function CameraStream({ cam }) {
     const [imgError, setImgError] = useState(false);
     const containerRef = useRef(null);
     const [dims, setDims] = useState({ w: 0, h: 0 });
+    const [retryKey, setRetryKey] = useState(0);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -19,10 +20,19 @@ function CameraStream({ cam }) {
         return () => ro.disconnect();
     }, []);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setImgError(false); // reset → img re-renders → onError fires again if still down
+            setRetryKey(k => k + 1);
+        }, 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <div ref={containerRef} className="absolute inset-0 overflow-hidden">
             {!imgError ? (
                 <img
+                    key={retryKey}
                     src={cam.streamUrl}
                     alt={cam.cameraName}
                     onError={() => setImgError(true)}
@@ -30,16 +40,26 @@ function CameraStream({ cam }) {
                         position: "absolute",
                         top: "50%",
                         left: "50%",
-                        width: dims.h,  
-                        height: dims.w,   
+                        width: dims.h,
+                        height: dims.w,
                         transform: "translate(-50%, -50%) rotate(270deg)",
                         objectFit: "cover",
                     }}
                 />
             ) : (
-                <div className="flex flex-col items-center justify-center h-full gap-1.5 z-10">
-                    <Camera size={26} className="text-slate-700" />
-                    <span className="text-slate-700 text-[10px]">Stream unavailable</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a0c12]">
+                    <div className="absolute inset-0 opacity-[0.04]"
+                        style={{ backgroundImage: "repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)" }} />
+                    <div className="relative flex items-center justify-center">
+                        <div className="absolute w-16 h-16 rounded-full bg-red-500/5 border border-red-500/10 animate-ping" />
+                        <div className="relative p-4 rounded-2xl bg-[#0d0f16] border border-red-500/20">
+                            <VideoOff size={22} className="text-red-500/60" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-red-400/70 text-[10px] font-black uppercase tracking-[0.2em]">No Signal</span>
+                        <span className="text-slate-700 text-[9px] tracking-widest uppercase">Feed Unavailable</span>
+                    </div>
                 </div>
             )}
         </div>
@@ -83,7 +103,6 @@ function FullscreenModal({ cam, onClose }) {
                     </button>
                 </div>
 
-                {/* Stream — 16:9 container */}
                 <div
                     ref={containerRef}
                     className="relative bg-black overflow-hidden"
@@ -218,21 +237,10 @@ export default function Cameras() {
                             key={cam._id}
                             className="flex flex-col rounded-2xl border border-[#1e2535] bg-[#0d0f16] overflow-hidden hover:border-cyan-500/30 transition-all group"
                         >
-                            {/* Stream area — height scales with layout */}
+                            {/* Stream area */}
                             <div className={`relative ${layout.height} bg-[#0a0c12] overflow-hidden transition-all duration-300`}>
 
                                 <CameraStream cam={cam} />
-
-                                {/* Status badge */}
-                                <div className={`absolute top-2 left-2 z-20 flex items-center gap-1.5 px-2 py-1 rounded-full
-                                    ${cam.status === "online"
-                                        ? "bg-emerald-500/20 border border-emerald-500/30"
-                                        : "bg-red-500/20 border border-red-500/30"}`}>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${cam.status === "online" ? "bg-emerald-400 animate-pulse" : "bg-red-400"}`} />
-                                    <span className={`text-[10px] font-bold uppercase tracking-widest ${cam.status === "online" ? "text-emerald-400" : "text-red-400"}`}>
-                                        {cam.status === "online" ? "Live" : "Offline"}
-                                    </span>
-                                </div>
 
                                 {/* Fullscreen button */}
                                 <button

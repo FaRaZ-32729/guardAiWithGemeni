@@ -1,5 +1,3 @@
-// ── helpers/emailChallan.js ───────────────────────────────────────────────
-
 function emailRow(label, val, highlight = false) {
   return `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:3px 0;border-bottom:1px dashed #f3f4f6;gap:8px;">
@@ -27,13 +25,13 @@ function numberToWordsEmail(n) {
  * Generates the HTML string for the violation fine challan email.
  *
  * @param {Object} params
- * @param {Object} params.student          - Populated student document
- * @param {Object} params.challan          - Saved challan document
- * @param {Object} params.geminiResult     - AI result containing action (violationType)
- * @param {number} params.previousBalance  - Previous challan balance
- * @param {number} params.violationAmount  - Fine amount for this violation
- * @param {Date}   params.issueDate        - Challan issue date
- * @param {Date}   params.dueDate          - Challan due date
+ * @param {Object} params.student     
+ * @param {Object} params.challan      
+ * @param {Object} params.geminiResult   
+ * @param {number} params.previousBalance
+ * @param {number} params.violationAmount  
+ * @param {Date}   params.issueDate      
+ * @param {Date}   params.dueDate         
  * @returns {string} HTML string ready to pass to sendEmail()
  */
 const generateChallanEmail = ({
@@ -54,7 +52,7 @@ const generateChallanEmail = ({
     ? dueDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
     : dueDate;
 
-
+  // <!-- Copy bar -->
     // <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px;background:#f3f4f6;border-bottom:1px solid #d1d5db;">
     //   <span style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#4b5563;">[STUDENT COPY — EMAIL]</span>
     //   <span style="font-size:9px;font-weight:700;color:#6b7280;font-family:monospace;">#${challanNo}</span>

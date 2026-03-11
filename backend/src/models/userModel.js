@@ -46,7 +46,6 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Pre-save hook to enforce role-based required fields
 userSchema.pre('save', async function () {
 
     if (this.role === 'admin') {

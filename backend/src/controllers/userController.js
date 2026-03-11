@@ -2,12 +2,9 @@ const userModel = require("../models/userModel");
 const fs = require("fs");
 const path = require("path");
 
-
-
-// Register Student
 const registerStudent = async (req, res) => {
-    console.log("req.file:", req.file);   // should show file info
-    console.log("req.body:", req.body);   // should show all text fields
+    console.log("req.file:", req.file); 
+    console.log("req.body:", req.body); 
     try {
         const { name, email, studentRollNumber, parentsEmail, parentsPhone, fatherName, department } = req.body;
 
@@ -67,7 +64,6 @@ const getSingleStudent = async (req, res) => {
     }
 };
 
-//get all students
 const getAllStudents = async (req, res) => {
     try {
         const students = await userModel.find({ role: "student" });

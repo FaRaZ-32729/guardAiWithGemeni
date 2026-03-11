@@ -8,15 +8,12 @@ const challanSchema = new mongoose.Schema(
             default: null
         },
 
-        // Random 8-digit human-readable challan number
         challanId: {
             type: String,
             unique: true,
             sparse: true
         },
 
-        // false = violation saved but no financial challan issued (24hr cooldown)
-        // true  = full challan issued with fine + email sent
         isChallanGenerated: {
             type: Boolean,
             default: false
@@ -44,7 +41,6 @@ const challanSchema = new mongoose.Schema(
             default: 0
         },
 
-        // ✅ Total = currentChallan + previousChallanBalance
         payableAmount: {
             type: Number,
             min: [0, "Payable amount cannot be negative"],

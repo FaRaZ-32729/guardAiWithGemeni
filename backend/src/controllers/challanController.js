@@ -1,5 +1,4 @@
 const sendEmail = require('../middleware/sendEmail');
-const AnonymousViolation = require('../models/anonymousViolationModel');
 const Challan = require('../models/challanModel');
 const User = require('../models/userModel');
 const mongoose = require('mongoose');
@@ -12,137 +11,6 @@ const CHALLAN_AMOUNTS = {
     smoking: process.env.SMOKING,
     fighting: process.env.FIGHTING
 };
-
-// const generateChallan = async (geminiResult, snapshotPath) => {
-//     console.log(`gemini result in generate challan`, geminiResult);
-
-//     try {
-
-//         if (!geminiResult.matched || geminiResult.rollNo === 'N/A') {
-//             if (['smoking', 'fighting'].includes(geminiResult.action)) {
-
-//                 const violationsDir = path.join(__dirname, "../../violations");
-//                 if (!fs.existsSync(violationsDir)) {
-//                     fs.mkdirSync(violationsDir, { recursive: true });
-//                 }
-
-//                 const filename = `violation_anonymous_${Date.now()}.jpg`;
-//                 const violationImagePath = path.join(violationsDir, filename);
-//                 fs.copyFileSync(snapshotPath, violationImagePath);
-
-//                 const issueDate = new Date();
-//                 const dueDate = new Date();
-//                 dueDate.setDate(dueDate.getDate() + 7);
-
-//                 const challan = new Challan({
-//                     isAnonymous: true,
-//                     name: "Anonymous",
-//                     previousChallanBalance: 0,
-//                     currentChallan: 0,
-//                     challanIssueDate: issueDate,
-//                     challanDueDate: dueDate,
-//                     violationType: geminiResult.action,
-//                     evidenceImage: violationImagePath,
-//                     description: geminiResult.description,
-//                     status: 'unpaid'
-//                 });
-
-//                 await challan.save();
-//                 console.log(`⚠️ Anonymous challan saved | Action: ${geminiResult.action}`);
-//             }
-//             return;
-//         }
-
-//         if (!['smoking', 'fighting'].includes(geminiResult.action)) return;
-
-//         // Find student
-//         const student = await User.findOne({ studentRollNumber: geminiResult.rollNo });
-
-//         if (!student) {
-//             console.warn(`Student not found in DB for rollNo: ${geminiResult.rollNo}`);
-//             return;
-//         }
-
-//         // ── 24-hour cooldown check ────────────────────────────────────────
-//         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-//         const recentChallan = await Challan.findOne({
-//             studentId: student._id,
-//             createdAt: { $gte: twentyFourHoursAgo }
-//         });
-
-//         if (recentChallan) {
-//             const nextAllowed = new Date(recentChallan.createdAt.getTime() + 24 * 60 * 60 * 1000);
-//             const minutesLeft = Math.ceil((nextAllowed - Date.now()) / 60000);
-//             console.log(`⏳ Cooldown active for ${student.name} — next challan in ${minutesLeft} min`);
-//             return;
-//         }
-//         // ─────────────────────────────────────────────────────────────────
-
-//         // Get previous balance
-//         const lastChallan = await Challan
-//             .findOne({ studentId: student._id })
-//             .sort({ createdAt: -1 });
-
-//         const previousBalance = lastChallan ? lastChallan.payableAmount : 0;
-
-//         const issueDate = new Date();
-//         const dueDate = new Date();
-//         dueDate.setDate(dueDate.getDate() + process.env.DUEDATE);
-
-//         const violationAmount = CHALLAN_AMOUNTS[geminiResult.action];
-
-//         const violationsDir = path.join(__dirname, "../../violations");
-//         if (!fs.existsSync(violationsDir)) {
-//             fs.mkdirSync(violationsDir, { recursive: true });
-//             console.log("new folder created");
-//         }
-
-//         const filename = `violation_${student.studentRollNumber}_${Date.now()}.jpg`;
-//         console.log(filename);
-//         const violationImagePath = path.join(violationsDir, filename);
-//         fs.copyFileSync(snapshotPath, violationImagePath);
-
-//         const challan = new Challan({
-//             studentId: student._id,
-//             previousChallanBalance: previousBalance,
-//             currentChallan: violationAmount,
-//             challanIssueDate: issueDate,
-//             challanDueDate: dueDate,
-//             violationType: geminiResult.action,
-//             status: 'unpaid',
-//             evidenceImage: violationImagePath,
-//             description: geminiResult.description
-//         });
-
-//         await challan.save();
-//         console.log(`Challan generated for ${student.name} | Action: ${geminiResult.action}`);
-
-//         try {
-//             const recipients = [student.email, student.parentsEmail];
-
-//             await sendEmail(
-//                 recipients,
-//                 `Violation Fine Challan — ${student.name} | Campus-Guard AI`,
-//                 generateChallanEmail({
-//                     student,
-//                     challan,
-//                     geminiResult,
-//                     previousBalance,
-//                     violationAmount,
-//                     issueDate,
-//                     dueDate,
-//                 })
-//             );
-
-//             console.log("📧 Challan email sent to student and parent.");
-//         } catch (emailError) {
-//             console.error("Email sending failed:", emailError.message);
-//         }
-
-//     } catch (error) {
-//         console.error("Challan Generation Error:", error.message);
-//     }
-// };
 
 const generateChallan = async (geminiResult, snapshotPath) => {
     console.log(`gemini result in generate challan`, geminiResult);
@@ -394,8 +262,7 @@ const getAllChallans = async (req, res) => {
     }
 };
 
-// PATCH /api/challan/:id/status
-
+// PUT /api/challan/:id/status
 const updateChallanStatus = async (req, res) => {
     try {
         const { id } = req.params;
@@ -422,42 +289,23 @@ const updateChallanStatus = async (req, res) => {
             return res.status(400).json({ message: "Paid challan cannot be updated" });
         }
 
-        // ── Mark this challan as paid + zero out payableAmount ────────────
+        //  Mark challan as paid and payableAmount amount 0 
         challan.status = 'paid';
         challan.payableAmount = 0;
         await challan.save();
 
-        // ── Delete all OTHER challans & violations of this student ────────
+        // Mark all OLDER challans as paid too
         if (challan.studentId) {
-            // Find all challans OLDER than the paid one (not newer)
-            const otherChallans = await Challan.find({
-                studentId: challan.studentId,
-                _id: { $ne: challan._id },
-                createdAt: { $lt: challan.createdAt }
-            });
+            await Challan.updateMany(
+                {
+                    studentId: challan.studentId,
+                    _id: { $ne: challan._id },
+                    createdAt: { $lt: challan.createdAt }
+                },
+                { $set: { status: 'paid' } }
+            );
 
-            // Delete their evidence images from disk
-            for (const c of otherChallans) {
-                if (c.evidenceImage) {
-                    try {
-                        if (fs.existsSync(c.evidenceImage)) {
-                            fs.unlinkSync(c.evidenceImage);
-                            console.log(`🗑️ Deleted evidence: ${c.evidenceImage}`);
-                        }
-                    } catch (fileErr) {
-                        console.warn(`Could not delete file: ${c.evidenceImage}`, fileErr.message);
-                    }
-                }
-            }
-
-            // Delete all older challan records from DB
-            const deleteResult = await Challan.deleteMany({
-                studentId: challan.studentId,
-                _id: { $ne: challan._id },
-                createdAt: { $lt: challan.createdAt }
-            });
-
-            console.log(`🧹 Cleared ${deleteResult.deletedCount} older challan(s) for student ${challan.studentId}`);
+            console.log(`Marked older challan(s) as paid for student ${challan.studentId}`);
         }
 
         return res.status(200).json({
@@ -471,112 +319,10 @@ const updateChallanStatus = async (req, res) => {
     }
 };
 
-// const updateChallanStatus = async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const { status } = req.body;
-
-//         if (!mongoose.Types.ObjectId.isValid(id)) {
-//             return res.status(400).json({ message: "Invalid challan ID" });
-//         }
-
-//         if (!status) {
-//             return res.status(400).json({ message: "Status is required" });
-//         }
-
-//         if (!['unpaid', 'paid'].includes(status)) {
-//             return res.status(400).json({ message: "Invalid status. Use: unpaid, paid" });
-//         }
-
-//         const challan = await Challan.findById(id);
-//         if (!challan) {
-//             return res.status(404).json({ message: "Challan not found" });
-//         }
-
-//         if (challan.status === 'paid') {
-//             return res.status(400).json({ message: "Paid challan cannot be updated" });
-//         }
-
-//         // ── Mark this challan as paid + zero out payableAmount ────────────
-//         challan.status = 'paid';
-//         challan.payableAmount = 0;
-//         await challan.save();
-
-//         // ── Delete all OTHER challans & violations of this student ────────
-//         if (challan.studentId) {
-//             // Find all other challans for this student (excluding the paid one)
-//             const otherChallans = await Challan.find({
-//                 studentId: challan.studentId,
-//                 _id: { $ne: challan._id }
-//             });
-
-//             // Delete their evidence images from disk
-//             for (const c of otherChallans) {
-//                 if (c.evidenceImage) {
-//                     try {
-//                         if (fs.existsSync(c.evidenceImage)) {
-//                             fs.unlinkSync(c.evidenceImage);
-//                             console.log(`🗑️ Deleted evidence: ${c.evidenceImage}`);
-//                         }
-//                     } catch (fileErr) {
-//                         console.warn(`Could not delete file: ${c.evidenceImage}`, fileErr.message);
-//                     }
-//                 }
-//             }
-
-//             // Delete all other challan records from DB
-//             const deleteResult = await Challan.deleteMany({
-//                 studentId: challan.studentId,
-//                 _id: { $ne: challan._id }
-//             });
-
-//             console.log(`🧹 Cleared ${deleteResult.deletedCount} old challan(s) for student ${challan.studentId}`);
-//         }
-
-//         return res.status(200).json({
-//             message: "Challan marked as paid. All previous records cleared.",
-//             challan
-//         });
-
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: error.message || "Server error" });
-//     }
-// };
-
-// DELETE /api/challan/:id
-const deleteChallan = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid challan ID" });
-        }
-
-        const challan = await Challan.findById(id);
-        if (!challan) {
-            return res.status(404).json({ message: "Challan not found" });
-        }
-
-        if (challan.status === 'paid') {
-            return res.status(400).json({ message: "Paid challan cannot be deleted" });
-        }
-
-        await Challan.findByIdAndDelete(id);
-
-        return res.status(200).json({ message: "Challan deleted successfully" });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: error.message || "Server error" });
-    }
-};
-
 module.exports = {
     generateChallan,
     getSingleChallanById,
     getAllChallansOfUser,
     getAllChallans,
     updateChallanStatus,
-    deleteChallan
 };

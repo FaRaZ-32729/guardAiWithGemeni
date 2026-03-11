@@ -8,8 +8,8 @@ export default function Students() {
     const { students, loading, error, getAllStudents, deleteStudent, addStudent } = useStudent();
 
     const [showRegister, setShowRegister] = useState(false);
-    const [editingStudent, setEditingStudent] = useState(null); // holds student object
-    const [deletingId, setDeletingId] = useState(null); // tracks which row is deleting
+    const [editingStudent, setEditingStudent] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     // Fetch on mount
     useEffect(() => {
