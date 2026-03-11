@@ -1,7 +1,7 @@
 import { Users, AlertTriangle, UserX, Cctv, RefreshCw } from "lucide-react";
-import StatCard from "../components/statCards";
-import RecentViolations from "../components/recentViolation";
-import ViolationChart from "../components/violationChart";
+import StatCard from "../components/home/statCards";
+import RecentViolations from "../components/home/recentViolation";
+import ViolationChart from "../components/home/violationChart";
 import { useCamera } from "../context/CameraContext";
 import { useStudent } from "../context/StudentContext";
 import { useChallan } from "../context/ChallanContext ";
@@ -52,10 +52,10 @@ export default function Home() {
         .slice(0, 4);
 
     const statCards = [
-        { title: "Total Cameras", value: cameras.length.toLocaleString(), subtitle: `${onlineCameras} online`, icon: Cctv, color: "emerald", trend: onlineCameras > 0 ? "Live" : "Offline" },
-        { title: "Total Students", value: students.length.toLocaleString(), subtitle: "Registered", icon: Users, color: "cyan", trend: `${students.length} enrolled` },
-        { title: "Total Violations", value: challans.length.toLocaleString(), subtitle: "All time", icon: AlertTriangle, color: "red", trend: `${challans.length} incidents` },
-        { title: "Violators Today", value: violatorsToday.toLocaleString(), subtitle: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }), icon: UserX, color: "amber", trend: "Live" },
+        { title: "Total Cameras", value: cameras.length.toLocaleString(), icon: Cctv, color: "emerald" },
+        { title: "Total Students", value: students.length.toLocaleString(), icon: Users, color: "cyan" },
+        { title: "Total Violations", value: challans.length.toLocaleString(), icon: AlertTriangle, color: "red" },
+        { title: "Violators Today", value: violatorsToday.toLocaleString(), icon: UserX, color: "amber" },
     ];
 
     return (

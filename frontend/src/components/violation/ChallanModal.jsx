@@ -23,6 +23,7 @@ function numberToWords(n) {
     return toW(Math.floor(n));
 }
 
+// style
 const S = {
     slip: {
         display: "flex", flexDirection: "column", background: "#ffffff",
@@ -88,7 +89,6 @@ function ChallanSlip({ v, copyLabel }) {
     const prev = v.previousChallanBalance || 0;
     const curr = v.currentChallan || 0;
     const total = v.payableAmount || (prev + curr);
-    // Use challanId from DB, fall back to last 8 of _id
     const challanNo = v.challanId || v._id?.slice(-8).toUpperCase();
 
     return (
@@ -264,6 +264,7 @@ export default function ChallanModal({ v, onClose, onStatusChange }) {
 
     const isPaid = currentStatus === "paid";
 
+    // status logic
     const handleMarkPaid = async () => {
         if (isPaid) return;
         setStatusLoading(true);
@@ -271,7 +272,7 @@ export default function ChallanModal({ v, onClose, onStatusChange }) {
             const res = await api.put(`/challan/update/${v._id}/status`, { status: "paid" });
             setCurrentStatus("paid");
             onStatusChange?.(v._id, "paid"); // update parent list
-            console.log("✅ Challan marked as paid:", res.data.message);
+            console.log("Challan marked as paid:", res.data.message);
         } catch (err) {
             console.error("Status update failed:", err.response?.data?.message || err.message);
             alert(err.response?.data?.message || "Failed to update status");
@@ -328,7 +329,7 @@ export default function ChallanModal({ v, onClose, onStatusChange }) {
 
                     <div className="flex items-center gap-2">
 
-                        {/* ── Status toggle button ── */}
+                        {/* status button */}
                         <button
                             onClick={handleMarkPaid}
                             disabled={isPaid || statusLoading}

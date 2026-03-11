@@ -1,4 +1,4 @@
-export default function StatCard({ title, value, subtitle, icon: Icon, color, trend }) {
+export default function StatCard({ title, value, icon: Icon, color, }) {
     const colors = {
         cyan: {
             bg: "bg-cyan-500/10",
@@ -40,7 +40,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color, tr
         hover:scale-[1.02] transition-transform duration-200 cursor-default
       `}
         >
-            {/* Background glow */}
+            {/* Background */}
             <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full ${c.bg} blur-2xl opacity-60`} />
 
             {/* Icon + Trend */}

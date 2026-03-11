@@ -8,7 +8,7 @@ export function CameraProvider({ children }) {
     const [cameras, setCameras] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // ───── Get All Cameras ─────
+    // Get All Cameras 
     const getAllCameras = useCallback(async () => {
         try {
             setLoading(true);
@@ -24,7 +24,7 @@ export function CameraProvider({ children }) {
         }
     }, []);
 
-    // ───── Delete Camera ─────
+    // Delete Camera 
     const deleteCamera = async (id) => {
         try {
 
@@ -37,7 +37,7 @@ export function CameraProvider({ children }) {
         }
     };
 
-    // Load cameras on mount
+    // Load cameras
     useEffect(() => {
         getAllCameras();
     }, [getAllCameras]);

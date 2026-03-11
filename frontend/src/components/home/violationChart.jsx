@@ -4,7 +4,7 @@ import {
   Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 
-// ── Build last-7-days data from challans array ────────────────────────────
+// 7 days chart data 
 function buildChartData(challans) {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -30,7 +30,7 @@ function buildChartData(challans) {
   return days.map(({ label, smoking, fighting }) => ({ label, smoking, fighting }));
 }
 
-// ── Custom tooltip ────────────────────────────────────────────────────────
+// bar custom hover card
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -47,6 +47,7 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+// main
 export default function ViolationChart({ challans, loading = false }) {
   const safe = Array.isArray(challans) ? challans : [];
   const data = useMemo(() => buildChartData(safe), [safe]);

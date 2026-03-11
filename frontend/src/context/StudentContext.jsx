@@ -8,7 +8,7 @@ export function StudentProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // ── GET ALL ───────────────────────────────────────────────────────────
+    // Get All Students
     const getAllStudents = useCallback(async () => {
         setLoading(true);
         setError("");
@@ -22,7 +22,7 @@ export function StudentProvider({ children }) {
         }
     }, []);
 
-    // ── UPDATE ────────────────────────────────────────────────────────────
+    // Update Student
     const updateStudent = useCallback(async (id, formData) => {
         setError("");
         try {
@@ -38,7 +38,7 @@ export function StudentProvider({ children }) {
         }
     }, []);
 
-    // ── DELETE ────────────────────────────────────────────────────────────
+    // Delete Student
     const deleteStudent = useCallback(async (id) => {
         setError("");
         try {
@@ -52,7 +52,7 @@ export function StudentProvider({ children }) {
         }
     }, []);
 
-    // ── ADD (called after register modal succeeds) ────────────────────────
+    
     const addStudent = useCallback((newStudent) => {
         setStudents((prev) => [...prev, newStudent]);
     }, []);

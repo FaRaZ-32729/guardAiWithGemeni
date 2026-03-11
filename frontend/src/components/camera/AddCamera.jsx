@@ -30,9 +30,12 @@ export default function AddCameraModal({ onClose, onSuccess }) {
         setError("");
         try {
 
+            const rawUrl = form.streamUrl.trim();
+            const streamUrl = rawUrl.endsWith("/video") ? rawUrl : `${rawUrl}/video`;
+
             const payload = {
-                cameraName: form.cameraName.trim() || undefined,
-                streamUrl: form.streamUrl.trim(),
+                cameraName: form.cameraName.trim() || "ILMA-Cam",
+                streamUrl,
             };
 
             const response = await api.post("/camera/add", payload);
@@ -78,7 +81,7 @@ export default function AddCameraModal({ onClose, onSuccess }) {
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-5">
 
-                    {/* Camera Name (optional) */}
+                    {/* Camera Name */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-slate-400 text-xs tracking-widest uppercase flex items-center gap-1.5">
                             <Tag size={10} /> Camera Name
@@ -99,7 +102,7 @@ export default function AddCameraModal({ onClose, onSuccess }) {
                         </div>
                     </div>
 
-                    {/* Stream URL (required) */}
+                    {/* URL */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-slate-400 text-xs tracking-widest uppercase flex items-center gap-1.5">
                             <Link size={10} /> Stream URL
@@ -115,12 +118,12 @@ export default function AddCameraModal({ onClose, onSuccess }) {
                                 name="streamUrl"
                                 value={form.streamUrl}
                                 onChange={handleChange}
-                                placeholder="rtsp:// or http://..."
+                                placeholder="http://..."
                                 className="flex-1 bg-transparent text-white text-sm placeholder-slate-600 outline-none"
                             />
                         </div>
                         <p className="text-slate-600 text-[10px] pl-1">
-                            Supports RTSP, HTTP, and HTTPS stream URLs.
+                            Supports HTTPS stream URLs.
                         </p>
                     </div>
 
@@ -175,6 +178,7 @@ export default function AddCameraModal({ onClose, onSuccess }) {
                             )}
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>

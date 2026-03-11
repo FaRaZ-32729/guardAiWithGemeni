@@ -1,17 +1,8 @@
-
 import { Shield, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { api } from "../config/AxiosInstance";
-import { useNavigate, useNavigation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
-const TOKEN_KEY = "exp_token";
-const USER_KEY = "user";
-
-function clearSession() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-}
 
 export default function Header({ sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();

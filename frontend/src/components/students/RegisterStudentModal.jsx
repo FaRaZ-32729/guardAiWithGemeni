@@ -118,7 +118,7 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
 
     const handleOpenCapture = () => {
         setImageMode("capture");
-        setTimeout(() => startCamera(), 100); // wait for video element to mount
+        setTimeout(() => startCamera(), 100);
     };
 
     const handleCloseCapture = () => {
@@ -150,7 +150,7 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
         }, "image/jpeg", 0.92);
 
         stopCamera();
-        setImageMode("upload"); // show preview after capture
+        setImageMode("upload"); // shows preview after capture
     };
 
     const handleReset = () => {
@@ -160,7 +160,7 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
         if (fileRef.current) fileRef.current.value = "";
     };
 
-    // ── Validation ────────────────────────────────────────────────────────
+    
     const validate = () => {
         const errs = {};
         const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -175,7 +175,7 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
         return errs;
     };
 
-    // ── Submit ────────────────────────────────────────────────────────────
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         const errs = validate();
@@ -201,7 +201,6 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
         }
     };
 
-    // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="relative w-full max-w-xl bg-[#0d0f16] border border-[#1e2535] rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
@@ -229,13 +228,13 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
                 {/* Scrollable body */}
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-5 overflow-y-auto">
 
-                    {/* ── Face Image Section ── */}
+                    {/* Face Image Section */}
                     <div className="flex flex-col gap-2">
                         <label className="text-slate-400 text-[10px] tracking-widest uppercase flex items-center gap-1.5">
                             <ImagePlus size={9} /> Face Image <span className="text-red-500">*</span>
                         </label>
 
-                        {/* ── Camera view ── */}
+                        {/* Camera view */}
                         {imageMode === "capture" && (
                             <div className="flex flex-col gap-2">
                                 <div className="relative rounded-xl overflow-hidden bg-black border border-[#1e2535] h-52">
@@ -297,7 +296,7 @@ export default function RegisterStudentModal({ onClose, onSuccess }) {
                             </div>
                         )}
 
-                        {/* ── Preview / Idle state ── */}
+                        {/*  Preview state */}
                         {imageMode !== "capture" && (
                             <>
                                 {preview ? (

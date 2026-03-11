@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useStudent } from "../../context/StudentContext";
 
-// ── Reusable field ────────────────────────────────────────────────────────
+
 function Field({ label, name, type = "text", value, onChange, placeholder, icon: Icon, error }) {
     return (
         <div className="flex flex-col gap-1.5">
@@ -35,7 +35,7 @@ function Field({ label, name, type = "text", value, onChange, placeholder, icon:
     );
 }
 
-// ── Main Modal ────────────────────────────────────────────────────────────
+
 export default function EditStudentModal({ student, onClose }) {
     const { updateStudent } = useStudent();
     const fileRef = useRef(null);
@@ -52,7 +52,7 @@ export default function EditStudentModal({ student, onClose }) {
 
     const [faceFile, setFaceFile] = useState(null);
     const [preview, setPreview] = useState(student.face || null);
-    const [isNewImage, setIsNewImage] = useState(false); // tracks if user changed the image
+    const [isNewImage, setIsNewImage] = useState(false);
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -64,7 +64,7 @@ export default function EditStudentModal({ student, onClose }) {
     const [cameraError, setCameraError] = useState("");
     const [mirrored, setMirrored] = useState(true);
 
-    // ── Form handlers ─────────────────────────────────────────────────────
+    
     const handleChange = (e) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
         setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
@@ -90,7 +90,7 @@ export default function EditStudentModal({ student, onClose }) {
         setImageMode("idle");
     };
 
-    // ── Camera helpers ────────────────────────────────────────────────────
+   
     const startCamera = useCallback(async () => {
         setCameraError("");
         try {
@@ -159,7 +159,7 @@ export default function EditStudentModal({ student, onClose }) {
         if (fileRef.current) fileRef.current.value = "";
     };
 
-    // ── Submit ────────────────────────────────────────────────────────────
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setApiError("");
@@ -177,7 +177,6 @@ export default function EditStudentModal({ student, onClose }) {
         }
     };
 
-    // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="relative w-full max-w-lg bg-[#0d0f16] border border-[#1e2535] rounded-2xl shadow-2xl flex flex-col max-h-[92vh]">
@@ -262,7 +261,7 @@ export default function EditStudentModal({ student, onClose }) {
                         {imageMode !== "capture" && (
                             <>
                                 {preview ? (
-                                    /* Has image — show preview row */
+                                    // if image then show it
                                     <div className="flex gap-3 items-center p-3 rounded-xl bg-[#0a0c12] border border-cyan-500/20">
                                         <img src={preview} alt="preview"
                                             className="w-14 h-14 rounded-xl object-cover border border-cyan-500/20 shrink-0" />
@@ -293,7 +292,7 @@ export default function EditStudentModal({ student, onClose }) {
                                         </div>
                                     </div>
                                 ) : (
-                                    /* No image — two option tiles */
+                                    // if no image then show options
                                     <div className="grid grid-cols-2 gap-3">
                                         <button type="button" onClick={() => fileRef.current?.click()}
                                             className="flex flex-col items-center justify-center gap-2.5 h-24 rounded-xl border-2 border-dashed border-[#1e2535] bg-[#0a0c12] hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all">
@@ -337,7 +336,6 @@ export default function EditStudentModal({ student, onClose }) {
                         <Field label="Department" name="department" value={form.department} onChange={handleChange} placeholder="Computer Science" icon={Building2} error={errors.department} />
                     </div>
 
-                    {/* API Error */}
                     {apiError && (
                         <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
                             <AlertTriangle size={14} className="shrink-0" /> {apiError}

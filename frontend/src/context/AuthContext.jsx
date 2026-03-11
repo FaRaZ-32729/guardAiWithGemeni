@@ -10,7 +10,6 @@ const USER_KEY = "user";
 const TOKEN_TTL = 7 * 24 * 60 * 60 * 1000;
 
 
-// ── Session helpers ───────────────────────────────────────────────────────
 function saveSession(user) {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     localStorage.setItem(TOKEN_KEY, String(Date.now() + TOKEN_TTL));
@@ -33,13 +32,12 @@ function loadSession() {
     }
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(() => loadSession());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // Auto-logout when token expires (checked every 60 s)
+    // Auto-logout when token expires (checks every 60s)
     useEffect(() => {
         const id = setInterval(() => {
             const expiry = parseInt(localStorage.getItem(TOKEN_KEY), 10);
